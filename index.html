@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Annual Income Calculator</title>
+  <title>Hourly to Weekly/Yearly Income Calculator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,21 +11,19 @@
 </head>
 <body>
   <main class="container">
-    <h1>Annual Income Calculator</h1>
-    <p class="subtitle">Enter your pay and work schedule to estimate yearly income.</p>
+    <h1>Hourly to Weekly/Yearly Income Calculator</h1>
+    <p class="subtitle">Enter your hourly pay, schedule, and ZIP to estimate gross and after-state-tax income.</p>
 
     <form id="income-form" class="card" novalidate>
-      <div class="field-group">
+      <div class="field-group" hidden>
         <label for="pay-period">Pay period</label>
         <select id="pay-period" name="payPeriod" required>
-          <option value="year">Per year</option>
-          <option value="week">Per week</option>
-          <option value="hour">Per hour</option>
+          <option value="hour" selected>Per hour</option>
         </select>
       </div>
 
       <div class="field-group">
-        <label for="pay-rate">Pay amount</label>
+        <label for="pay-rate">Hourly pay</label>
         <div class="input-prefix">
           <span class="prefix">$</span>
           <input id="pay-rate" name="payRate" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required>
@@ -51,6 +49,11 @@
         </div>
       </div>
 
+      <div class="field-group">
+        <label for="zip">ZIP code (for state tax estimate)</label>
+        <input id="zip" name="zip" type="text" inputmode="numeric" pattern="\\d{5}" maxlength="5" placeholder="e.g., 94103">
+      </div>
+
       <div class="actions">
         <button type="submit" class="primary">Calculate</button>
         <button type="reset" class="secondary" id="reset-btn">Reset</button>
@@ -60,10 +63,30 @@
     </form>
 
     <section id="results" class="results card" hidden>
-      <h2>Your estimated yearly income</h2>
+      <h2>Your estimates</h2>
       <div class="result-row">
-        <span class="result-label">Per year</span>
+        <span class="result-label">Per week (gross)</span>
+        <span id="per-week" class="result-value">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Per year (gross)</span>
         <span id="per-year" class="result-value">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">State</span>
+        <span id="state-label" class="result-value">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Est. state income tax rate</span>
+        <span id="state-tax-rate" class="result-value">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Per week (after state tax)</span>
+        <span id="per-week-after" class="result-value">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Per year (after state tax)</span>
+        <span id="per-year-after" class="result-value">$0.00</span>
       </div>
     </section>
 
@@ -73,25 +96,6 @@
   </main>
 
   <script src="./script.js"></script>
-  <script>
-    // Progressive enhancement: show/hide hours fields for non-hourly periods
-    document.addEventListener('DOMContentLoaded', () => {
-      const period = document.getElementById('pay-period');
-      const hoursContainer = document.getElementById('work-hours');
-      const hoursPerWeek = document.getElementById('hours-per-week');
-      const weeksPerYear = document.getElementById('weeks-per-year');
-
-      function toggleHours() {
-        const isHourly = period.value === 'hour';
-        hoursContainer.style.display = isHourly ? 'grid' : 'none';
-        hoursPerWeek.required = isHourly;
-        weeksPerYear.required = isHourly;
-      }
-
-      period.addEventListener('change', toggleHours);
-      toggleHours();
-    });
-  </script>
 </body>
 <!--
   Implementation notes:
