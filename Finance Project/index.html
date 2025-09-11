@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Annual Income Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Annual Income Calculator</h1>
+    <p class="subtitle">Enter your pay and work schedule to estimate yearly income.</p>
+
+    <form id="income-form" class="card" novalidate>
+      <div class="field-group">
+        <label for="pay-period">Pay period</label>
+        <select id="pay-period" name="payPeriod" required>
+          <option value="year">Per year</option>
+          <option value="week">Per week</option>
+          <option value="hour">Per hour</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="pay-rate">Pay amount</label>
+        <div class="input-prefix">
+          <span class="prefix">$</span>
+          <input id="pay-rate" name="payRate" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+      </div>
+
+      <div id="work-hours" class="grid two">
+        <div class="field-group">
+          <label for="hours-per-week">Hours per week</label>
+          <input id="hours-per-week" name="hoursPerWeek" type="number" step="0.1" min="0" max="168" placeholder="40">
+        </div>
+        <div class="field-group">
+          <label for="weeks-per-year">Weeks per year</label>
+          <input id="weeks-per-year" name="weeksPerYear" type="number" step="1" min="0" max="366" placeholder="52">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="bonus">Bonus (optional)</label>
+        <div class="input-prefix">
+          <span class="prefix">$</span>
+          <input id="bonus" name="bonus" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="primary">Calculate</button>
+        <button type="reset" class="secondary" id="reset-btn">Reset</button>
+      </div>
+
+      <p id="error" class="error" role="alert" aria-live="polite"></p>
+    </form>
+
+    <section id="results" class="results card" hidden>
+      <h2>Your estimated yearly income</h2>
+      <div class="result-row">
+        <span class="result-label">Per year</span>
+        <span id="per-year" class="result-value">$0.00</span>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <small>Made for quick estimates. Actual pay may vary.</small>
+    </footer>
+  </main>
+
+  <script src="./script.js"></script>
+  <script>
+    // Progressive enhancement: show/hide hours fields for non-hourly periods
+    document.addEventListener('DOMContentLoaded', () => {
+      const period = document.getElementById('pay-period');
+      const hoursContainer = document.getElementById('work-hours');
+      const hoursPerWeek = document.getElementById('hours-per-week');
+      const weeksPerYear = document.getElementById('weeks-per-year');
+
+      function toggleHours() {
+        const isHourly = period.value === 'hour';
+        hoursContainer.style.display = isHourly ? 'grid' : 'none';
+        hoursPerWeek.required = isHourly;
+        weeksPerYear.required = isHourly;
+      }
+
+      period.addEventListener('change', toggleHours);
+      toggleHours();
+    });
+  </script>
+</body>
+<!--
+  Implementation notes:
+  - Yearly from hourly: rate * hoursPerWeek * weeksPerYear + bonus
+  - Yearly from weekly: rate * weeksPerYear + bonus (weeks default 52 if empty)
+  - Yearly from yearly: rate + bonus
+-->
+</html>
+
+
