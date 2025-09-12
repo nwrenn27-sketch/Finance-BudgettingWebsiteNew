@@ -1,5 +1,22 @@
 /* eslint-disable no-console */
 (function () {
+  // Tab Navigation
+  const tabs = document.querySelectorAll('.nav-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+      
+      // Remove active class from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      tab.classList.add('active');
+      document.getElementById(`${targetTab}-tab`).classList.add('active');
+    });
+  });
   const form = document.getElementById('income-form');
   const period = document.getElementById('pay-period');
   const payRate = document.getElementById('pay-rate');
@@ -12,10 +29,13 @@
   const resultsSection = document.getElementById('results');
   const perWeekEl = document.getElementById('per-week');
   const perYearEl = document.getElementById('per-year');
-  const perWeekAfterEl = document.getElementById('per-week-after');
-  const perYearAfterEl = document.getElementById('per-year-after');
+  const perWeekAfterStateEl = document.getElementById('per-week-after-state');
+  const perYearAfterStateEl = document.getElementById('per-year-after-state');
+  const perWeekAfterAllEl = document.getElementById('per-week-after-all');
+  const perYearAfterAllEl = document.getElementById('per-year-after-all');
   const stateLabelEl = document.getElementById('state-label');
   const stateTaxRateEl = document.getElementById('state-tax-rate');
+  const federalTaxRateEl = document.getElementById('federal-tax-rate');
 
   function toNumber(value) {
     const num = parseFloat(String(value).replace(/,/g, ''));
@@ -79,13 +99,16 @@
     return { weekly, yearly };
   }
 
-  function renderResults({ weeklyGross, yearlyGross, state, rate, weeklyAfter, yearlyAfter }) {
+  function renderResults({ weeklyGross, yearlyGross, state, stateRate, federalRate, weeklyAfterState, yearlyAfterState, weeklyAfterAll, yearlyAfterAll }) {
     perWeekEl.textContent = formatCurrency(weeklyGross);
     perYearEl.textContent = formatCurrency(yearlyGross);
     stateLabelEl.textContent = state || '—';
-    stateTaxRateEl.textContent = typeof rate === 'number' ? `${(rate * 100).toFixed(1)}%` : '—';
-    perWeekAfterEl.textContent = formatCurrency(weeklyAfter);
-    perYearAfterEl.textContent = formatCurrency(yearlyAfter);
+    stateTaxRateEl.textContent = typeof stateRate === 'number' ? `${(stateRate * 100).toFixed(1)}%` : '—';
+    federalTaxRateEl.textContent = typeof federalRate === 'number' ? `${(federalRate * 100).toFixed(1)}%` : '—';
+    perWeekAfterStateEl.textContent = formatCurrency(weeklyAfterState);
+    perYearAfterStateEl.textContent = formatCurrency(yearlyAfterState);
+    perWeekAfterAllEl.textContent = formatCurrency(weeklyAfterAll);
+    perYearAfterAllEl.textContent = formatCurrency(yearlyAfterAll);
     resultsSection.hidden = false;
   }
 
@@ -120,6 +143,37 @@
     return APPROX_STATE_RATES[stateAbbr] ?? null;
   }
 
+  // 2024 Federal Tax Brackets (Single filer)
+  const FEDERAL_BRACKETS = [
+    { min: 0, max: 11000, rate: 0.10 },
+    { min: 11000, max: 44725, rate: 0.12 },
+    { min: 44725, max: 95375, rate: 0.22 },
+    { min: 95375, max: 182050, rate: 0.24 },
+    { min: 182050, max: 231250, rate: 0.32 },
+    { min: 231250, max: 578125, rate: 0.35 },
+    { min: 578125, max: Infinity, rate: 0.37 }
+  ];
+
+  function calculateFederalTax(income) {
+    if (income <= 0) return { tax: 0, effectiveRate: 0 };
+    
+    let totalTax = 0;
+    let remainingIncome = income;
+    
+    for (const bracket of FEDERAL_BRACKETS) {
+      if (remainingIncome <= 0) break;
+      
+      const taxableInBracket = Math.min(remainingIncome, bracket.max - bracket.min);
+      if (taxableInBracket > 0) {
+        totalTax += taxableInBracket * bracket.rate;
+        remainingIncome -= taxableInBracket;
+      }
+    }
+    
+    const effectiveRate = income > 0 ? totalTax / income : 0;
+    return { tax: totalTax, effectiveRate };
+  }
+
   form.addEventListener('submit', async function (evt) {
     evt.preventDefault();
     const message = validateInputs();
@@ -135,22 +189,35 @@
       const { state: s } = await fetchStateFromZip(zipInput.value.trim());
       state = s;
     }
-    const rate = getApproxStateRate(state);
+    const stateRate = getApproxStateRate(state);
 
-    let yearlyAfter = yearly;
-    if (typeof rate === 'number') {
-      yearlyAfter = Math.max(0, yearly - yearly * rate);
+    // Calculate federal tax
+    const { tax: federalTax, effectiveRate: federalRate } = calculateFederalTax(yearly);
+
+    // Calculate state tax
+    let stateTax = 0;
+    if (typeof stateRate === 'number') {
+      stateTax = yearly * stateRate;
     }
+
+    // Calculate after-tax amounts
+    const yearlyAfterState = Math.max(0, yearly - stateTax);
+    const yearlyAfterAll = Math.max(0, yearly - stateTax - federalTax);
+    
     const weeks = weeksPerYear.value ? toNumber(weeksPerYear.value) : 52;
-    const weeklyAfter = yearlyAfter / (weeks || 52);
+    const weeklyAfterState = yearlyAfterState / (weeks || 52);
+    const weeklyAfterAll = yearlyAfterAll / (weeks || 52);
 
     renderResults({
       weeklyGross: weekly,
       yearlyGross: yearly,
       state: state || (zipInput && zipInput.value ? 'Unknown' : '—'),
-      rate: typeof rate === 'number' ? rate : null,
-      weeklyAfter,
-      yearlyAfter
+      stateRate: typeof stateRate === 'number' ? stateRate : null,
+      federalRate: federalRate,
+      weeklyAfterState,
+      yearlyAfterState,
+      weeklyAfterAll,
+      yearlyAfterAll
     });
   });
 
@@ -158,6 +225,160 @@
     error.textContent = '';
     resultsSection.hidden = true;
   });
+
+  // Budget Tracker
+  const monthlyIncomeInput = document.getElementById('monthly-income');
+  const budgetCategories = document.getElementById('budget-categories');
+  const addCategoryBtn = document.getElementById('add-category');
+  const totalBudgetedEl = document.getElementById('total-budgeted');
+  const remainingBudgetEl = document.getElementById('remaining-budget');
+
+  function updateBudgetSummary() {
+    const monthlyIncome = toNumber(monthlyIncomeInput.value);
+    let totalBudgeted = 0;
+
+    const categoryAmounts = budgetCategories.querySelectorAll('.category-amount');
+    categoryAmounts.forEach(input => {
+      totalBudgeted += toNumber(input.value);
+    });
+
+    const remaining = monthlyIncome - totalBudgeted;
+
+    totalBudgetedEl.textContent = formatCurrency(totalBudgeted);
+    remainingBudgetEl.textContent = formatCurrency(remaining);
+    remainingBudgetEl.style.color = remaining < 0 ? 'var(--error)' : 'var(--primary)';
+  }
+
+  function addBudgetCategory() {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'budget-item';
+    categoryDiv.innerHTML = `
+      <input type="text" placeholder="Category (e.g., Rent)" class="category-name">
+      <div class="input-prefix">
+        <span class="prefix">$</span>
+        <input type="number" step="0.01" min="0" placeholder="0.00" class="category-amount">
+      </div>
+      <button type="button" class="remove-category">×</button>
+    `;
+    
+    budgetCategories.appendChild(categoryDiv);
+    
+    // Add event listeners
+    const amountInput = categoryDiv.querySelector('.category-amount');
+    const removeBtn = categoryDiv.querySelector('.remove-category');
+    
+    amountInput.addEventListener('input', updateBudgetSummary);
+    removeBtn.addEventListener('click', () => {
+      categoryDiv.remove();
+      updateBudgetSummary();
+    });
+  }
+
+  monthlyIncomeInput.addEventListener('input', updateBudgetSummary);
+  addCategoryBtn.addEventListener('click', addBudgetCategory);
+
+  // Investment Calculator
+  const investmentForm = document.getElementById('investment-form');
+  const investmentResults = document.getElementById('investment-results');
+  const totalContributionsEl = document.getElementById('total-contributions');
+  const totalGrowthEl = document.getElementById('total-growth');
+  const finalValueEl = document.getElementById('final-value');
+
+  function calculateInvestment() {
+    const initialInvestment = toNumber(document.getElementById('initial-investment').value);
+    const monthlyContribution = toNumber(document.getElementById('monthly-contribution').value);
+    const annualReturn = toNumber(document.getElementById('annual-return').value) / 100;
+    const years = toNumber(document.getElementById('investment-years').value);
+
+    const monthlyReturn = annualReturn / 12;
+    const totalMonths = years * 12;
+
+    // Calculate future value with compound interest
+    let futureValue = initialInvestment * Math.pow(1 + annualReturn, years);
+    
+    // Add monthly contributions with compound interest
+    if (monthlyContribution > 0) {
+      futureValue += monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
+    }
+
+    const totalContributions = initialInvestment + (monthlyContribution * totalMonths);
+    const totalGrowth = futureValue - totalContributions;
+
+    totalContributionsEl.textContent = formatCurrency(totalContributions);
+    totalGrowthEl.textContent = formatCurrency(totalGrowth);
+    finalValueEl.textContent = formatCurrency(futureValue);
+    
+    investmentResults.hidden = false;
+  }
+
+  investmentForm.addEventListener('submit', function(evt) {
+    evt.preventDefault();
+    calculateInvestment();
+  });
+
+  // Expense Tracker
+  const expenseForm = document.getElementById('expense-form');
+  const expenseList = document.getElementById('expense-list');
+  const totalSpentEl = document.getElementById('total-spent');
+  const todaySpentEl = document.getElementById('today-spent');
+  
+  let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+  function renderExpenses() {
+    if (expenses.length === 0) {
+      expenseList.innerHTML = '<p class="no-expenses">No expenses added yet.</p>';
+      return;
+    }
+
+    expenseList.innerHTML = expenses.slice(-10).reverse().map(expense => `
+      <div class="expense-item">
+        <div class="expense-info">
+          <div>${expense.description}</div>
+          <div class="expense-category">${expense.category}</div>
+        </div>
+        <div class="expense-amount">${formatCurrency(expense.amount)}</div>
+      </div>
+    `).join('');
+  }
+
+  function updateExpenseSummary() {
+    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const today = new Date().toDateString();
+    const todayTotal = expenses
+      .filter(expense => new Date(expense.date).toDateString() === today)
+      .reduce((sum, expense) => sum + expense.amount, 0);
+
+    totalSpentEl.textContent = formatCurrency(total);
+    todaySpentEl.textContent = formatCurrency(todayTotal);
+  }
+
+  expenseForm.addEventListener('submit', function(evt) {
+    evt.preventDefault();
+    
+    const description = document.getElementById('expense-description').value;
+    const amount = toNumber(document.getElementById('expense-amount').value);
+    const category = document.getElementById('expense-category').value;
+
+    const expense = {
+      id: Date.now(),
+      description,
+      amount,
+      category,
+      date: new Date().toISOString()
+    };
+
+    expenses.push(expense);
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+    
+    renderExpenses();
+    updateExpenseSummary();
+    
+    expenseForm.reset();
+  });
+
+  // Initialize expense tracker
+  renderExpenses();
+  updateExpenseSummary();
 })();
 
 

@@ -3,16 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hourly to Weekly/Yearly Income Calculator</title>
+  <title>Finance & Budgeting Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <nav class="nav">
+    <div class="nav-container">
+      <h1 class="nav-title">💰 Finance Dashboard</h1>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="income">Income Calculator</button>
+        <button class="nav-tab" data-tab="budget">Budget Tracker</button>
+        <button class="nav-tab" data-tab="investment">Investment Calculator</button>
+        <button class="nav-tab" data-tab="expenses">Expense Tracker</button>
+      </div>
+    </div>
+  </nav>
+
   <main class="container">
-    <h1>Hourly to Weekly/Yearly Income Calculator</h1>
-    <p class="subtitle">Enter your hourly pay, schedule, and ZIP to estimate gross and after-state-tax income.</p>
+    <!-- Income Calculator Tab -->
+    <section id="income-tab" class="tab-content active">
+      <h2>Income Calculator</h2>
+      <p class="subtitle">Enter your hourly pay, schedule, and ZIP to estimate gross and after-tax income.</p>
 
     <form id="income-form" class="card" novalidate>
       <div class="field-group" hidden>
@@ -81,28 +95,197 @@
         <span id="state-tax-rate" class="result-value">—</span>
       </div>
       <div class="result-row">
+        <span class="result-label">Est. federal income tax rate</span>
+        <span id="federal-tax-rate" class="result-value">—</span>
+      </div>
+      <div class="result-row">
         <span class="result-label">Per week (after state tax)</span>
-        <span id="per-week-after" class="result-value">$0.00</span>
+        <span id="per-week-after-state" class="result-value">$0.00</span>
       </div>
       <div class="result-row">
         <span class="result-label">Per year (after state tax)</span>
-        <span id="per-year-after" class="result-value">$0.00</span>
+        <span id="per-year-after-state" class="result-value">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Per week (after all taxes)</span>
+        <span id="per-week-after-all" class="result-value">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Per year (after all taxes)</span>
+        <span id="per-year-after-all" class="result-value">$0.00</span>
+      </div>
+    </section>
+
+    <!-- Budget Tracker Tab -->
+    <section id="budget-tab" class="tab-content">
+      <h2>Budget Tracker</h2>
+      <p class="subtitle">Track your monthly budget and spending categories.</p>
+      
+      <div class="budget-container">
+        <div class="card">
+          <h3>Monthly Income</h3>
+          <div class="input-prefix">
+            <span class="prefix">$</span>
+            <input id="monthly-income" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>Budget Categories</h3>
+          <div id="budget-categories">
+            <div class="budget-item">
+              <input type="text" placeholder="Category (e.g., Rent)" class="category-name">
+              <div class="input-prefix">
+                <span class="prefix">$</span>
+                <input type="number" step="0.01" min="0" placeholder="0.00" class="category-amount">
+              </div>
+              <button type="button" class="remove-category">×</button>
+            </div>
+          </div>
+          <button type="button" id="add-category" class="secondary">+ Add Category</button>
+        </div>
+        
+        <div class="card">
+          <h3>Budget Summary</h3>
+          <div id="budget-summary">
+            <div class="summary-row">
+              <span>Total Budgeted:</span>
+              <span id="total-budgeted">$0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Remaining:</span>
+              <span id="remaining-budget">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Investment Calculator Tab -->
+    <section id="investment-tab" class="tab-content">
+      <h2>Investment Calculator</h2>
+      <p class="subtitle">Calculate compound interest and investment growth over time.</p>
+      
+      <form id="investment-form" class="card" novalidate>
+        <div class="field-group">
+          <label for="initial-investment">Initial Investment</label>
+          <div class="input-prefix">
+            <span class="prefix">$</span>
+            <input id="initial-investment" type="number" step="0.01" min="0" placeholder="0.00" required>
+          </div>
+        </div>
+        
+        <div class="field-group">
+          <label for="monthly-contribution">Monthly Contribution</label>
+          <div class="input-prefix">
+            <span class="prefix">$</span>
+            <input id="monthly-contribution" type="number" step="0.01" min="0" placeholder="0.00" required>
+          </div>
+        </div>
+        
+        <div class="field-group">
+          <label for="annual-return">Expected Annual Return (%)</label>
+          <input id="annual-return" type="number" step="0.01" min="0" max="100" placeholder="7.00" required>
+        </div>
+        
+        <div class="field-group">
+          <label for="investment-years">Investment Period (years)</label>
+          <input id="investment-years" type="number" step="1" min="1" max="100" placeholder="30" required>
+        </div>
+        
+        <div class="actions">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="secondary">Reset</button>
+        </div>
+      </form>
+      
+      <section id="investment-results" class="results card" hidden>
+        <h3>Investment Projection</h3>
+        <div class="result-row">
+          <span class="result-label">Total Contributions</span>
+          <span id="total-contributions" class="result-value">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Total Growth</span>
+          <span id="total-growth" class="result-value">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Final Value</span>
+          <span id="final-value" class="result-value">$0.00</span>
+        </div>
+      </section>
+    </section>
+
+    <!-- Expense Tracker Tab -->
+    <section id="expenses-tab" class="tab-content">
+      <h2>Expense Tracker</h2>
+      <p class="subtitle">Track your daily expenses and spending patterns.</p>
+      
+      <div class="expense-container">
+        <form id="expense-form" class="card">
+          <h3>Add Expense</h3>
+          <div class="field-group">
+            <label for="expense-description">Description</label>
+            <input id="expense-description" type="text" placeholder="e.g., Groceries" required>
+          </div>
+          
+          <div class="field-group">
+            <label for="expense-amount">Amount</label>
+            <div class="input-prefix">
+              <span class="prefix">$</span>
+              <input id="expense-amount" type="number" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+          </div>
+          
+          <div class="field-group">
+            <label for="expense-category">Category</label>
+            <select id="expense-category" required>
+              <option value="">Select Category</option>
+              <option value="food">Food & Dining</option>
+              <option value="transportation">Transportation</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="utilities">Utilities</option>
+              <option value="shopping">Shopping</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <div class="actions">
+            <button type="submit" class="primary">Add Expense</button>
+          </div>
+        </form>
+        
+        <div class="card">
+          <h3>Recent Expenses</h3>
+          <div id="expense-list">
+            <p class="no-expenses">No expenses added yet.</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>Expense Summary</h3>
+          <div id="expense-summary">
+            <div class="summary-row">
+              <span>Total Spent:</span>
+              <span id="total-spent">$0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Expenses Today:</span>
+              <span id="today-spent">$0.00</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
     <footer class="footer">
-      <small>Made for quick estimates. Actual pay may vary.</small>
+      <small>Finance Dashboard - Track your income, budget, investments, and expenses.</small>
     </footer>
   </main>
 
   <script src="./script.js"></script>
 </body>
-<!--
-  Implementation notes:
-  - Yearly from hourly: rate * hoursPerWeek * weeksPerYear + bonus
-  - Yearly from weekly: rate * weeksPerYear + bonus (weeks default 52 if empty)
-  - Yearly from yearly: rate + bonus
--->
 </html>
 
 
