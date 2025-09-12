@@ -19,8 +19,16 @@
   </header>
 
   <main class="container">
-    <section class="card" aria-labelledby="calc-title">
-      <h2 id="calc-title">Income Calculator</h2>
+    <!-- Navigation Tabs -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" data-tab="income">Income Calculator</button>
+      <button class="tab-btn" data-tab="budget">Budget Planner</button>
+    </div>
+
+    <!-- Income Calculator Tab -->
+    <section class="tab-content active" id="income-tab" aria-labelledby="calc-title">
+      <div class="card">
+        <h2 id="calc-title">Income Calculator</h2>
       <form id="income-form" class="grid">
         <div class="field">
           <label for="pay-amount">Pay amount</label>
@@ -57,13 +65,85 @@
           <button type="button" id="reset-btn" class="btn-secondary">Reset</button>
         </div>
       </form>
-      <div id="results" class="results" aria-live="polite"></div>
+        <div id="results" class="results" aria-live="polite"></div>
+      </div>
     </section>
 
-    <section class="card" aria-labelledby="budget-title">
-      <h2 id="budget-title">Monthly Budget Suggestions</h2>
-      <p>Based on your annual income, here are suggested monthly allocations. You can adjust categories later as needed.</p>
-      <div id="budget-breakdown" class="budget-grid" aria-live="polite"></div>
+    <!-- Budget Planner Tab -->
+    <section class="tab-content" id="budget-tab" aria-labelledby="budget-title">
+      <div class="card">
+        <h2 id="budget-title">Personal Budget Planner</h2>
+        <p>Input your monthly expenses to get personalized savings and investment recommendations.</p>
+        
+        <form id="budget-form" class="budget-form">
+          <div class="budget-section">
+            <h3>Monthly Income</h3>
+            <div class="field">
+              <label for="monthly-income">Monthly Net Income (After Taxes)</label>
+              <input id="monthly-income" name="monthlyIncome" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 4000" required>
+            </div>
+          </div>
+
+          <div class="budget-section">
+            <h3>Essential Expenses</h3>
+            <div class="expense-grid">
+              <div class="field">
+                <label for="rent-mortgage">Rent/Mortgage</label>
+                <input id="rent-mortgage" name="rentMortgage" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 1200">
+              </div>
+              <div class="field">
+                <label for="utilities">Utilities (Electric, Gas, Water)</label>
+                <input id="utilities" name="utilities" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+              </div>
+              <div class="field">
+                <label for="groceries">Groceries & Food</label>
+                <input id="groceries" name="groceries" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 400">
+              </div>
+              <div class="field">
+                <label for="transportation">Transportation (Gas, Public Transit)</label>
+                <input id="transportation" name="transportation" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+              </div>
+              <div class="field">
+                <label for="insurance">Insurance (Health, Auto, Home)</label>
+                <input id="insurance" name="insurance" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 250">
+              </div>
+              <div class="field">
+                <label for="debt-payments">Debt Payments (Credit Cards, Loans)</label>
+                <input id="debt-payments" name="debtPayments" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+              </div>
+            </div>
+          </div>
+
+          <div class="budget-section">
+            <h3>Discretionary Expenses</h3>
+            <div class="expense-grid">
+              <div class="field">
+                <label for="dining-out">Dining Out & Entertainment</label>
+                <input id="dining-out" name="diningOut" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+              </div>
+              <div class="field">
+                <label for="shopping">Shopping & Personal Items</label>
+                <input id="shopping" name="shopping" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 150">
+              </div>
+              <div class="field">
+                <label for="subscriptions">Subscriptions & Memberships</label>
+                <input id="subscriptions" name="subscriptions" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 50">
+              </div>
+              <div class="field">
+                <label for="miscellaneous">Miscellaneous</label>
+                <input id="miscellaneous" name="miscellaneous" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 100">
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">Analyze Budget</button>
+            <button type="button" id="budget-reset-btn" class="btn-secondary">Reset</button>
+          </div>
+        </form>
+
+        <div id="budget-results" class="budget-results" aria-live="polite"></div>
+      </div>
     </section>
   </main>
 

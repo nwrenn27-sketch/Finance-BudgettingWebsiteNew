@@ -10,6 +10,13 @@
   const budgetEl = document.getElementById('budget-breakdown');
   const resetBtn = document.getElementById('reset-btn');
 
+  // Budget page elements
+  const budgetForm = document.getElementById('budget-form');
+  const budgetResultsEl = document.getElementById('budget-results');
+  const budgetResetBtn = document.getElementById('budget-reset-btn');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
   const defaultAssumptions = {
     hoursPerDay: 8,
     daysPerWeek: 5,
@@ -309,6 +316,199 @@
     renderBudget(monthlyNetIncome);
   }
 
+  // Budget calculation functions
+  function calculateBudgetAnalysis(income, expenses) {
+    const totalExpenses = Object.values(expenses).reduce((sum, amount) => sum + amount, 0);
+    const remainingIncome = income - totalExpenses;
+    const savingsRate = (remainingIncome / income) * 100;
+
+    // Calculate expense percentages
+    const expensePercentages = {};
+    Object.keys(expenses).forEach(key => {
+      if (expenses[key] > 0) {
+        expensePercentages[key] = (expenses[key] / income) * 100;
+      }
+    });
+
+    return {
+      totalExpenses,
+      remainingIncome,
+      savingsRate,
+      expensePercentages
+    };
+  }
+
+  function generateSavingsRecommendations(analysis) {
+    const { remainingIncome, savingsRate, totalExpenses } = analysis;
+    const recommendations = [];
+
+    // Emergency Fund
+    if (remainingIncome > 0) {
+      const emergencyFundAmount = Math.min(remainingIncome * 0.3, 500);
+      recommendations.push({
+        type: 'emergency',
+        title: 'Emergency Fund',
+        icon: '🛡️',
+        amount: emergencyFundAmount,
+        description: 'Build 3-6 months of expenses in a high-yield savings account for unexpected situations.',
+        priority: 'high'
+      });
+    }
+
+    // 401k/Retirement
+    if (remainingIncome > 200) {
+      const retirementAmount = Math.min(remainingIncome * 0.4, 1000);
+      recommendations.push({
+        type: 'retirement',
+        title: '401k/Retirement',
+        icon: '🏦',
+        amount: retirementAmount,
+        description: 'Contribute to your 401k (especially if employer matches) or open an IRA for long-term wealth building.',
+        priority: 'high'
+      });
+    }
+
+    // Investment Portfolio
+    if (remainingIncome > 300) {
+      const investmentAmount = Math.min(remainingIncome * 0.3, 800);
+      recommendations.push({
+        type: 'investment',
+        title: 'Investment Portfolio',
+        icon: '📈',
+        amount: investmentAmount,
+        description: 'Invest in diversified index funds or ETFs for long-term growth. Consider low-cost options like VTI or SPY.',
+        priority: 'medium'
+      });
+    }
+
+    // High-Yield Savings
+    if (remainingIncome > 100) {
+      const savingsAmount = Math.min(remainingIncome * 0.2, 300);
+      recommendations.push({
+        type: 'savings',
+        title: 'High-Yield Savings',
+        icon: '💰',
+        amount: savingsAmount,
+        description: 'Save for short-term goals (vacation, car, home down payment) in a high-yield savings account.',
+        priority: 'medium'
+      });
+    }
+
+    return recommendations;
+  }
+
+  function generateExpenseRecommendations(expenses, income) {
+    const recommendations = [];
+    const totalExpenses = Object.values(expenses).reduce((sum, amount) => sum + amount, 0);
+
+    // Housing (should be 25-30% of income)
+    if (expenses.rentMortgage > 0) {
+      const housingPercent = (expenses.rentMortgage / income) * 100;
+      if (housingPercent > 35) {
+        recommendations.push({
+          type: 'warning',
+          message: `Housing costs (${housingPercent.toFixed(1)}%) are above recommended 25-30%. Consider finding more affordable housing or increasing income.`
+        });
+      }
+    }
+
+    // Debt payments (should be under 20% of income)
+    if (expenses.debtPayments > 0) {
+      const debtPercent = (expenses.debtPayments / income) * 100;
+      if (debtPercent > 20) {
+        recommendations.push({
+          type: 'warning',
+          message: `Debt payments (${debtPercent.toFixed(1)}%) are above recommended 20%. Focus on paying down high-interest debt first.`
+        });
+      }
+    }
+
+    // Total expenses (should be under 80% of income)
+    const totalExpensePercent = (totalExpenses / income) * 100;
+    if (totalExpensePercent > 80) {
+      recommendations.push({
+        type: 'warning',
+        message: `Total expenses (${totalExpensePercent.toFixed(1)}%) leave little room for savings. Consider reducing discretionary spending.`
+      });
+    } else if (totalExpensePercent < 60) {
+      recommendations.push({
+        type: 'success',
+        message: `Great job! Your expenses (${totalExpensePercent.toFixed(1)}%) leave plenty of room for savings and investments.`
+      });
+    }
+
+    return recommendations;
+  }
+
+  function renderBudgetResults(analysis, recommendations, expenseRecommendations) {
+    const { totalExpenses, remainingIncome, savingsRate } = analysis;
+    
+    let content = `
+      <div class="budget-summary">
+        <h3>Budget Summary</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span>Total Monthly Income:</span>
+            <span>${toCurrency(analysis.income)}</span>
+          </div>
+          <div class="summary-item">
+            <span>Total Monthly Expenses:</span>
+            <span>${toCurrency(totalExpenses)}</span>
+          </div>
+          <div class="summary-item">
+            <span>Remaining Income:</span>
+            <span>${toCurrency(remainingIncome)}</span>
+          </div>
+          <div class="summary-item">
+            <span>Savings Rate:</span>
+            <span>${savingsRate.toFixed(1)}%</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add expense recommendations
+    if (expenseRecommendations.length > 0) {
+      content += '<div class="expense-recommendations">';
+      expenseRecommendations.forEach(rec => {
+        content += `<div class="alert ${rec.type}">${rec.message}</div>`;
+      });
+      content += '</div>';
+    }
+
+    // Add savings recommendations
+    if (recommendations.length > 0) {
+      content += `
+        <div class="recommendations">
+          <h3>Savings & Investment Recommendations</h3>
+      `;
+      
+      recommendations.forEach(rec => {
+        content += `
+          <div class="recommendation-card">
+            <h4>
+              <span class="icon">${rec.icon}</span>
+              ${rec.title}
+            </h4>
+            <p class="amount">Recommended: ${toCurrency(rec.amount)}/month</p>
+            <p>${rec.description}</p>
+          </div>
+        `;
+      });
+      
+      content += '</div>';
+    } else {
+      content += `
+        <div class="alert warning">
+          <strong>Limited Savings Capacity:</strong> Your current expenses don't leave much room for savings. 
+          Consider reducing expenses or increasing income to build wealth over time.
+        </div>
+      `;
+    }
+
+    budgetResultsEl.innerHTML = content;
+  }
+
   function renderBudget(monthlyIncome) {
     const items = budgetRules.map(rule => {
       const amount = monthlyIncome * (rule.percent / 100);
@@ -365,11 +565,76 @@
     updateVisibility();
   }
 
+  function onBudgetSubmit(event) {
+    event.preventDefault();
+    
+    const monthlyIncome = sanitizeNumber(document.getElementById('monthly-income').value);
+    const expenses = {
+      rentMortgage: sanitizeNumber(document.getElementById('rent-mortgage').value),
+      utilities: sanitizeNumber(document.getElementById('utilities').value),
+      groceries: sanitizeNumber(document.getElementById('groceries').value),
+      transportation: sanitizeNumber(document.getElementById('transportation').value),
+      insurance: sanitizeNumber(document.getElementById('insurance').value),
+      debtPayments: sanitizeNumber(document.getElementById('debt-payments').value),
+      diningOut: sanitizeNumber(document.getElementById('dining-out').value),
+      shopping: sanitizeNumber(document.getElementById('shopping').value),
+      subscriptions: sanitizeNumber(document.getElementById('subscriptions').value),
+      miscellaneous: sanitizeNumber(document.getElementById('miscellaneous').value)
+    };
+
+    if (monthlyIncome <= 0) {
+      budgetResultsEl.textContent = 'Please enter a valid monthly income.';
+      return;
+    }
+
+    const analysis = calculateBudgetAnalysis(monthlyIncome, expenses);
+    analysis.income = monthlyIncome;
+    
+    const savingsRecommendations = generateSavingsRecommendations(analysis);
+    const expenseRecommendations = generateExpenseRecommendations(expenses, monthlyIncome);
+    
+    renderBudgetResults(analysis, savingsRecommendations, expenseRecommendations);
+  }
+
+  function onBudgetReset() {
+    budgetForm.reset();
+    budgetResultsEl.textContent = '';
+  }
+
+  function switchTab(tabName) {
+    // Update tab buttons
+    tabBtns.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.tab === tabName) {
+        btn.classList.add('active');
+      }
+    });
+
+    // Update tab content
+    tabContents.forEach(content => {
+      content.classList.remove('active');
+      if (content.id === `${tabName}-tab`) {
+        content.classList.add('active');
+      }
+    });
+  }
+
   // init
   updateVisibility();
   form.addEventListener('submit', onSubmit);
   payFrequencySelect.addEventListener('change', updateVisibility);
   resetBtn.addEventListener('click', onReset);
+
+  // Budget form event listeners
+  budgetForm.addEventListener('submit', onBudgetSubmit);
+  budgetResetBtn.addEventListener('click', onBudgetReset);
+
+  // Tab navigation event listeners
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchTab(btn.dataset.tab);
+    });
+  });
 })();
 
 
