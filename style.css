@@ -1,36 +1,121 @@
-/* Basic Reset */
+/* ============================================================================
+   FINANCE BUDGETING INVESTMENT APPLICATION - MAIN STYLESHEET
+   ============================================================================
+   
+   This stylesheet provides the main styling for the Income & Budget Planner
+   application, including layout, typography, form styling, and responsive design.
+   ============================================================================ */
+
+/* ============================================================================
+   CSS RESET & BASE STYLES
+   ============================================================================ */
+
+/* Basic CSS Reset - Ensures consistent box model across browsers */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color: #0f172a; background: #f8fafc; }
 
+/* Base body styling with modern font stack and color scheme */
+body { 
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; 
+  color: #0f172a; 
+  background: #f8fafc; 
+}
+
+/* ============================================================================
+   LAYOUT & CONTAINER STYLES
+   ============================================================================ */
+
+/* Main container - Centers content with max-width and responsive padding */
 .container { max-width: 960px; margin: 0 auto; padding: 24px; }
 
+/* ============================================================================
+   HEADER & FOOTER STYLES
+   ============================================================================ */
+
+/* Site header styling with clean white background and subtle border */
 .site-header { background: white; border-bottom: 1px solid #e2e8f0; }
 .site-header h1 { margin: 0; font-size: 28px; }
 .subtitle { margin: 8px 0 0; color: #475569; }
 
+/* Site footer styling matching header design */
 .site-footer { margin-top: 40px; border-top: 1px solid #e2e8f0; background: #fff; }
 .site-footer p { margin: 0; color: #475569; }
 
-.card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-top: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+/* ============================================================================
+   CARD & CONTENT STYLES
+   ============================================================================ */
+
+/* Card component - Main content containers with subtle shadow and rounded corners */
+.card { 
+  background: white; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  padding: 20px; 
+  margin-top: 24px; 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04); 
+}
 .card h2 { margin-top: 0; }
 
+/* ============================================================================
+   FORM LAYOUT & STYLING
+   ============================================================================ */
+
+/* Grid layout for forms - 6 column responsive grid */
 .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; align-items: end; }
+
+/* Form field styling - Each field spans 2 columns in the grid */
 .field { display: flex; flex-direction: column; gap: 6px; grid-column: span 2; }
 .field label { font-weight: 600; font-size: 14px; color: #334155; }
-.field input, .field select { height: 40px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; background: #fff; color: #0f172a; }
-.field input:focus, .field select:focus { outline: 2px solid #2563eb33; border-color: #2563eb; }
 
+/* Input and select styling with focus states */
+.field input, .field select { 
+  height: 40px; 
+  padding: 8px 10px; 
+  border: 1px solid #cbd5e1; 
+  border-radius: 8px; 
+  font-size: 16px; 
+  background: #fff; 
+  color: #0f172a; 
+}
+.field input:focus, .field select:focus { 
+  outline: 2px solid #2563eb33; 
+  border-color: #2563eb; 
+}
+
+/* ============================================================================
+   BUTTON & ACTION STYLES
+   ============================================================================ */
+
+/* Actions container - Spans full width of grid and contains buttons */
 .actions { grid-column: span 6; display: flex; gap: 12px; }
-.btn-primary, .btn-secondary { height: 40px; padding: 0 14px; border-radius: 8px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+
+/* Base button styling for primary and secondary buttons */
+.btn-primary, .btn-secondary { 
+  height: 40px; 
+  padding: 0 14px; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  border: 1px solid transparent; 
+  cursor: pointer; 
+}
+
+/* Primary button - Main action button with blue background */
 .btn-primary { background: #2563eb; color: white; }
 .btn-primary:hover { background: #1d4ed8; }
+
+/* Secondary button - Secondary action with outlined style */
 .btn-secondary { background: white; border-color: #cbd5e1; color: #0f172a; }
 .btn-secondary:hover { background: #f1f5f9; }
 
+/* ============================================================================
+   RESULTS & DISPLAY STYLES
+   ============================================================================ */
+
+/* Results container styling */
 .results { margin-top: 12px; color: #0f172a; }
 .results .number { font-weight: 700; }
 
+/* Income and tax summary sections with consistent styling */
 .income-summary, .tax-breakdown, .net-income { 
   margin-bottom: 20px; 
   padding: 16px; 
@@ -39,18 +124,21 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   border-radius: 8px; 
 }
 
+/* Section headings styling */
 .income-summary h3, .tax-breakdown h3, .net-income h3 { 
   margin: 0 0 12px; 
   font-size: 18px; 
   color: #1e293b; 
 }
 
+/* Tax breakdown grid layout */
 .tax-grid { 
   display: grid; 
   grid-template-columns: 1fr; 
   gap: 8px; 
 }
 
+/* Individual tax item styling with label and amount */
 .tax-item { 
   display: flex; 
   justify-content: space-between; 
@@ -63,6 +151,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   border-bottom: none; 
 }
 
+/* Total taxes item with special styling */
 .tax-item.total-taxes { 
   border-top: 2px solid #2563eb; 
   margin-top: 8px; 
@@ -70,16 +159,15 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   font-size: 16px; 
 }
 
-.tax-label { 
-  color: #475569; 
-}
+/* Tax label and amount styling */
+.tax-label { color: #475569; }
+.tax-amount { font-weight: 600; color: #0f172a; }
 
-.tax-amount { 
-  font-weight: 600; 
-  color: #0f172a; 
-}
+/* ============================================================================
+   TAB NAVIGATION STYLES
+   ============================================================================ */
 
-/* Tab Navigation */
+/* Tab navigation container with pill-style design */
 .tab-navigation {
   display: flex;
   gap: 4px;
@@ -89,6 +177,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   border-radius: 12px;
 }
 
+/* Individual tab button styling */
 .tab-btn {
   flex: 1;
   padding: 12px 20px;
@@ -101,17 +190,20 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   transition: all 0.2s ease;
 }
 
+/* Active tab styling with white background and blue text */
 .tab-btn.active {
   background: white;
   color: #2563eb;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
+/* Hover state for inactive tabs */
 .tab-btn:hover:not(.active) {
   color: #334155;
   background: rgba(255,255,255,0.5);
 }
 
+/* Tab content visibility control */
 .tab-content {
   display: none;
 }
@@ -120,13 +212,18 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   display: block;
 }
 
-/* Budget Form Styling */
+/* ============================================================================
+   BUDGET FORM STYLING
+   ============================================================================ */
+
+/* Budget form layout with vertical spacing */
 .budget-form {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
+/* Budget section containers with light background */
 .budget-section {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -134,6 +231,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   padding: 20px;
 }
 
+/* Budget section headings with underline */
 .budget-section h3 {
   margin: 0 0 16px;
   font-size: 18px;
@@ -142,16 +240,19 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   padding-bottom: 8px;
 }
 
+/* Expense grid layout - Responsive grid for expense inputs */
 .expense-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
 }
 
+/* Budget results container */
 .budget-results {
   margin-top: 24px;
 }
 
+/* Budget summary section with blue theme */
 .budget-summary {
   background: #f0f9ff;
   border: 1px solid #0ea5e9;
@@ -166,12 +267,14 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   font-size: 20px;
 }
 
+/* Summary grid layout for budget overview */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }
 
+/* Individual summary items with label and value */
 .summary-item {
   display: flex;
   justify-content: space-between;
@@ -187,6 +290,11 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   color: #0c4a6e;
 }
 
+/* ============================================================================
+   RECOMMENDATIONS & ALERTS STYLING
+   ============================================================================ */
+
+/* Recommendations grid layout for savings/investment suggestions */
 .recommendations {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -194,6 +302,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   margin-top: 20px;
 }
 
+/* Individual recommendation card styling */
 .recommendation-card {
   background: white;
   border: 1px solid #e2e8f0;
@@ -202,6 +311,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* Recommendation card headings with icon */
 .recommendation-card h4 {
   margin: 0 0 12px;
   color: #1e293b;
@@ -211,6 +321,7 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   gap: 8px;
 }
 
+/* Icon styling for recommendation cards */
 .recommendation-card .icon {
   width: 24px;
   height: 24px;
@@ -224,18 +335,21 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   font-size: 14px;
 }
 
+/* Recommendation card text styling */
 .recommendation-card p {
   margin: 8px 0;
   color: #475569;
   line-height: 1.5;
 }
 
+/* Recommendation amount styling with green color */
 .recommendation-card .amount {
   font-weight: 600;
   color: #059669;
   font-size: 16px;
 }
 
+/* Alert component base styling */
 .alert {
   padding: 16px;
   border-radius: 8px;
@@ -243,33 +357,62 @@ body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica
   border-left: 4px solid;
 }
 
+/* Warning alert styling (yellow theme) */
 .alert.warning {
   background: #fef3c7;
   border-color: #f59e0b;
   color: #92400e;
 }
 
+/* Success alert styling (green theme) */
 .alert.success {
   background: #d1fae5;
   border-color: #10b981;
   color: #065f46;
 }
 
+/* Info alert styling (blue theme) */
 .alert.info {
   background: #dbeafe;
   border-color: #3b82f6;
   color: #1e40af;
 }
 
-.budget-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
-.budget-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; grid-column: span 6; }
+/* ============================================================================
+   BUDGET GRID & LAYOUT STYLES
+   ============================================================================ */
+
+/* Budget breakdown grid - 12 column layout for 50/30/15/5 rule display */
+.budget-grid { 
+  display: grid; 
+  grid-template-columns: repeat(12, 1fr); 
+  gap: 12px; 
+}
+
+/* Individual budget items spanning 6 columns each */
+.budget-item { 
+  background: #f8fafc; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 10px; 
+  padding: 12px; 
+  grid-column: span 6; 
+}
+
 .budget-item h3 { margin: 0 0 6px; font-size: 16px; }
 .budget-item p { margin: 4px 0; color: #334155; }
 
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+/* Mobile and tablet responsive adjustments */
 @media (max-width: 720px) {
+  /* Single column layout for forms on mobile */
   .grid { grid-template-columns: 1fr; }
   .field { grid-column: span 1; }
   .actions { grid-column: span 1; }
+  
+  /* Single column layout for budget grid on mobile */
   .budget-grid { grid-template-columns: 1fr; }
   .budget-item { grid-column: span 1; }
 }

@@ -1,25 +1,51 @@
+/* ============================================================================
+   FINANCE BUDGETING INVESTMENT APPLICATION - DARK THEME STYLESHEET
+   ============================================================================
+   
+   This stylesheet provides dark theme styling for the Income & Budget Planner
+   application, featuring a modern dark color scheme with blue accents.
+   ============================================================================ */
+
+/* ============================================================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ============================================================================ */
+
+/* Dark theme color palette using CSS custom properties */
 :root {
-  --bg: #0b1021;
-  --card: #121936;
-  --text: #e9ecf2;
-  --muted: #a8b0c3;
-  --primary: #5b8def;
-  --primary-700: #3a6fdc;
-  --error: #ff6b6b;
-  --border: #233056;
+  --bg: #0b1021;           /* Main background - Deep dark blue */
+  --card: #121936;         /* Card background - Slightly lighter dark blue */
+  --text: #e9ecf2;         /* Primary text - Light gray */
+  --muted: #a8b0c3;        /* Muted text - Medium gray */
+  --primary: #5b8def;      /* Primary accent - Bright blue */
+  --primary-700: #3a6fdc;  /* Primary hover - Darker blue */
+  --error: #ff6b6b;        /* Error color - Red */
+  --border: #233056;       /* Border color - Dark blue-gray */
 }
 
+/* ============================================================================
+   CSS RESET & BASE STYLES
+   ============================================================================ */
+
+/* Basic CSS Reset - Ensures consistent box model across browsers */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+
+/* Base body styling with dark theme and gradient background */
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  /* Complex radial gradient background for visual depth */
   background: radial-gradient(1200px 800px at 10% -10%, #182144 0%, var(--bg) 40%),
               radial-gradient(800px 600px at 110% 10%, #0f1633 0%, var(--bg) 50%);
   color: var(--text);
   line-height: 1.5;
 }
 
+/* ============================================================================
+   NAVIGATION STYLES
+   ============================================================================ */
+
+/* Navigation bar with glassmorphism effect */
 .nav {
   background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
   border-bottom: 1px solid var(--border);
@@ -29,6 +55,7 @@ body {
   z-index: 100;
 }
 
+/* Navigation container with responsive layout */
 .nav-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -40,18 +67,21 @@ body {
   gap: 16px;
 }
 
+/* Navigation title styling */
 .nav-title {
   font-size: 24px;
   margin: 0;
   color: var(--text);
 }
 
+/* Navigation tabs container */
 .nav-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
+/* Individual navigation tab styling */
 .nav-tab {
   padding: 8px 16px;
   border-radius: 8px;
@@ -63,11 +93,13 @@ body {
   transition: all 0.2s ease;
 }
 
+/* Navigation tab hover state */
 .nav-tab:hover {
   background: rgba(15, 21, 45, 0.8);
   color: var(--text);
 }
 
+/* Active navigation tab styling */
 .nav-tab.active {
   background: var(--primary);
   border-color: var(--primary-700);
@@ -75,6 +107,11 @@ body {
   font-weight: 600;
 }
 
+/* ============================================================================
+   TAB CONTENT & LAYOUT STYLES
+   ============================================================================ */
+
+/* Tab content visibility control */
 .tab-content {
   display: none;
 }
@@ -83,15 +120,22 @@ body {
   display: block;
 }
 
+/* Main container with responsive padding */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
 
+/* Typography styling */
 h1 { font-size: 32px; margin: 0 0 8px; }
 .subtitle { color: var(--muted); margin: 0 0 24px; }
 
+/* ============================================================================
+   CARD & COMPONENT STYLES
+   ============================================================================ */
+
+/* Card component with glassmorphism effect */
 .card {
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
   border: 1px solid var(--border);
@@ -101,15 +145,23 @@ h1 { font-size: 32px; margin: 0 0 8px; }
   backdrop-filter: blur(6px);
 }
 
+/* Form cards with additional margin */
 form.card { margin-bottom: 20px; }
 
+/* ============================================================================
+   FORM & INPUT STYLES
+   ============================================================================ */
+
+/* Form field grouping */
 .field-group { margin-bottom: 16px; }
 label { display: block; margin-bottom: 6px; color: var(--muted); }
 
+/* Form element inheritance */
 input, select, button {
   font: inherit;
 }
 
+/* Input and select styling with dark theme */
 input, select {
   width: 100%;
   padding: 12px 14px;
@@ -120,8 +172,13 @@ input, select {
   outline: none;
 }
 
-input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.25); }
+/* Focus states with primary color accent */
+input:focus, select:focus { 
+  border-color: var(--primary); 
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.25); 
+}
 
+/* Input prefix styling for currency symbols */
 .input-prefix { position: relative; }
 .input-prefix .prefix {
   position: absolute;
@@ -132,18 +189,25 @@ input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px 
 }
 .input-prefix input { padding-left: 28px; }
 
+/* ============================================================================
+   GRID LAYOUT & BUTTON STYLES
+   ============================================================================ */
+
+/* Two-column grid layout */
 .grid.two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
+/* Actions container for buttons */
 .actions {
   display: flex;
   gap: 12px;
   margin-top: 12px;
 }
 
+/* Base button styling */
 button {
   padding: 12px 16px;
   border-radius: 12px;
@@ -153,12 +217,26 @@ button {
   cursor: pointer;
 }
 
-button.primary { background: var(--primary); border-color: var(--primary-700); color: #0b1021; font-weight: 700; }
+/* Primary button styling with blue theme */
+button.primary { 
+  background: var(--primary); 
+  border-color: var(--primary-700); 
+  color: #0b1021; 
+  font-weight: 700; 
+}
 button.primary:hover { background: var(--primary-700); }
+
+/* Secondary button hover state */
 button.secondary:hover { background: #0e1531; }
 
+/* ============================================================================
+   RESULTS & DISPLAY STYLES
+   ============================================================================ */
+
+/* Error message styling */
 .error { color: var(--error); min-height: 20px; }
 
+/* Results display with dashed borders */
 .results .result-row {
   display: flex;
   align-items: center;
@@ -167,12 +245,23 @@ button.secondary:hover { background: #0e1531; }
   border-top: 1px dashed var(--border);
 }
 .results .result-row:first-of-type { border-top: none; }
-.result-label { color: var(--muted); }
-.result-value { font-size: 24px; font-weight: 700; letter-spacing: 0.2px; }
 
+/* Result label and value styling */
+.result-label { color: var(--muted); }
+.result-value { 
+  font-size: 24px; 
+  font-weight: 700; 
+  letter-spacing: 0.2px; 
+}
+
+/* Footer styling */
 .footer { color: var(--muted); text-align: center; margin-top: 20px; }
 
-/* Budget Tracker Styles */
+/* ============================================================================
+   BUDGET TRACKER STYLES
+   ============================================================================ */
+
+/* Budget container with two-column layout */
 .budget-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -180,6 +269,7 @@ button.secondary:hover { background: #0e1531; }
   margin-bottom: 20px;
 }
 
+/* Individual budget item styling */
 .budget-item {
   display: flex;
   align-items: center;
@@ -191,16 +281,19 @@ button.secondary:hover { background: #0e1531; }
   border: 1px solid var(--border);
 }
 
+/* Budget item category name */
 .budget-item .category-name {
   flex: 1;
   margin: 0;
 }
 
+/* Budget item input prefix */
 .budget-item .input-prefix {
   flex: 1;
   margin: 0;
 }
 
+/* Remove category button styling */
 .remove-category {
   background: var(--error);
   border: none;
@@ -219,12 +312,20 @@ button.secondary:hover { background: #0e1531; }
   background: #e55555;
 }
 
-/* Investment Calculator Styles */
+/* ============================================================================
+   INVESTMENT CALCULATOR STYLES
+   ============================================================================ */
+
+/* Investment results container */
 #investment-results {
   margin-top: 20px;
 }
 
-/* Expense Tracker Styles */
+/* ============================================================================
+   EXPENSE TRACKER STYLES
+   ============================================================================ */
+
+/* Expense container with two-column layout */
 .expense-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -232,6 +333,7 @@ button.secondary:hover { background: #0e1531; }
   margin-bottom: 20px;
 }
 
+/* Individual expense item styling */
 .expense-item {
   display: flex;
   justify-content: space-between;
@@ -243,21 +345,25 @@ button.secondary:hover { background: #0e1531; }
   margin-bottom: 8px;
 }
 
+/* Expense item information */
 .expense-item .expense-info {
   flex: 1;
 }
 
+/* Expense amount styling with primary color */
 .expense-item .expense-amount {
   font-weight: 600;
   color: var(--primary);
 }
 
+/* Expense category styling */
 .expense-item .expense-category {
   font-size: 12px;
   color: var(--muted);
   text-transform: capitalize;
 }
 
+/* No expenses placeholder */
 .no-expenses {
   text-align: center;
   color: var(--muted);
@@ -265,6 +371,11 @@ button.secondary:hover { background: #0e1531; }
   padding: 20px;
 }
 
+/* ============================================================================
+   SUMMARY & DISPLAY STYLES
+   ============================================================================ */
+
+/* Summary row layout with dashed borders */
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -277,34 +388,47 @@ button.secondary:hover { background: #0e1531; }
   border-bottom: none;
 }
 
+/* Summary row value styling */
 .summary-row span:last-child {
   font-weight: 600;
   color: var(--primary);
 }
 
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+/* Tablet and mobile responsive adjustments */
 @media (max-width: 768px) {
+  /* Navigation container becomes vertical on mobile */
   .nav-container {
     flex-direction: column;
     align-items: stretch;
   }
   
+  /* Center navigation tabs on mobile */
   .nav-tabs {
     justify-content: center;
   }
   
+  /* Single column layout for budget and expense containers */
   .budget-container,
   .expense-container {
     grid-template-columns: 1fr;
   }
 }
 
+/* Small mobile responsive adjustments */
 @media (max-width: 560px) {
+  /* Single column grid layout */
   .grid.two { grid-template-columns: 1fr; }
   
+  /* Vertical navigation tabs on small screens */
   .nav-tabs {
     flex-direction: column;
   }
   
+  /* Center navigation tab text */
   .nav-tab {
     text-align: center;
   }

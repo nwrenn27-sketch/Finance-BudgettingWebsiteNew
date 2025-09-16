@@ -1,4 +1,19 @@
+/**
+ * Finance Budgeting Investment Application
+ * 
+ * This application provides two main features:
+ * 1. Income Calculator - Converts various pay frequencies to annual income with tax calculations
+ * 2. Budget Planner - Analyzes monthly expenses and provides savings/investment recommendations
+ * 
+ * The application uses 2024 tax brackets and rates for accurate calculations.
+ */
+
 (function() {
+  // ============================================================================
+  // DOM ELEMENT REFERENCES
+  // ============================================================================
+  
+  // Income calculator form elements
   const form = document.getElementById('income-form');
   const payAmountInput = document.getElementById('pay-amount');
   const payFrequencySelect = document.getElementById('pay-frequency');
@@ -10,19 +25,25 @@
   const budgetEl = document.getElementById('budget-breakdown');
   const resetBtn = document.getElementById('reset-btn');
 
-  // Budget page elements
+  // Budget planner form elements
   const budgetForm = document.getElementById('budget-form');
   const budgetResultsEl = document.getElementById('budget-results');
   const budgetResetBtn = document.getElementById('budget-reset-btn');
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
+  // ============================================================================
+  // CONFIGURATION OBJECTS
+  // ============================================================================
+  
+  // Default assumptions for work schedule calculations
   const defaultAssumptions = {
-    hoursPerDay: 8,
-    daysPerWeek: 5,
-    weeksPerYear: 52
+    hoursPerDay: 8,    // Standard 8-hour workday
+    daysPerWeek: 5,    // Monday-Friday work week
+    weeksPerYear: 52   // Full year of work weeks
   };
 
+  // 50/30/15/5 budget rule for expense allocation
   const budgetRules = [
     { key: 'needs', label: 'Needs (Housing, Utilities, Groceries, Insurance)', percent: 50 },
     { key: 'wants', label: 'Wants (Dining, Entertainment, Shopping, Travel)', percent: 30 },
@@ -30,24 +51,39 @@
     { key: 'debt', label: 'Debt Payments (beyond minimums)', percent: 5 },
   ];
 
-  // 2024 Federal Tax Brackets (Single Filer)
+  // ============================================================================
+  // TAX CALCULATION DATA (2024 RATES)
+  // ============================================================================
+  
+  // 2024 Federal Tax Brackets for Single Filers
+  // Progressive tax system where each bracket is taxed at its respective rate
   const federalTaxBrackets = [
-    { min: 0, max: 11000, rate: 0.10 },
-    { min: 11000, max: 44725, rate: 0.12 },
-    { min: 44725, max: 95375, rate: 0.22 },
-    { min: 95375, max: 182050, rate: 0.24 },
-    { min: 182050, max: 231250, rate: 0.32 },
-    { min: 231250, max: 578125, rate: 0.35 },
-    { min: 578125, max: Infinity, rate: 0.37 }
+    { min: 0, max: 11000, rate: 0.10 },      // 10% on first $11,000
+    { min: 11000, max: 44725, rate: 0.12 },  // 12% on $11,001-$44,725
+    { min: 44725, max: 95375, rate: 0.22 },  // 22% on $44,726-$95,375
+    { min: 95375, max: 182050, rate: 0.24 }, // 24% on $95,376-$182,050
+    { min: 182050, max: 231250, rate: 0.32 },// 32% on $182,051-$231,250
+    { min: 231250, max: 578125, rate: 0.35 },// 35% on $231,251-$578,125
+    { min: 578125, max: Infinity, rate: 0.37 } // 37% on $578,126+
   ];
 
-  // 2024 FICA Tax Rates
+  // 2024 FICA (Federal Insurance Contributions Act) Tax Rates
+  // Includes Social Security and Medicare taxes
   const ficaRates = {
-    socialSecurity: { rate: 0.062, wageBase: 160200 },
-    medicare: { rate: 0.0145, additionalRate: 0.009, additionalThreshold: 200000 }
+    socialSecurity: { 
+      rate: 0.062,        // 6.2% Social Security tax
+      wageBase: 160200    // Only applies to first $160,200 of wages
+    },
+    medicare: { 
+      rate: 0.0145,                    // 1.45% Medicare tax on all wages
+      additionalRate: 0.009,           // Additional 0.9% Medicare tax
+      additionalThreshold: 200000      // Additional tax applies to wages over $200,000
+    }
   };
 
-  // State Tax Data (simplified - using average rates by state)
+  // State Income Tax Rates (2024) - Simplified average rates by state
+  // Note: These are simplified rates and may not reflect exact tax calculations
+  // for all income levels due to progressive state tax systems
   const stateTaxRates = {
     'AL': 0.05, 'AK': 0, 'AZ': 0.025, 'AR': 0.055, 'CA': 0.09, 'CO': 0.045,
     'CT': 0.05, 'DE': 0.06, 'FL': 0, 'GA': 0.055, 'HI': 0.08, 'ID': 0.06,
@@ -60,7 +96,10 @@
     'WI': 0.0765, 'WY': 0
   };
 
-  // ZIP Code to State mapping (simplified - using first 3 digits for major regions)
+  // ZIP Code to State Mapping
+  // Maps the first 3 digits of ZIP codes to their corresponding states
+  // This is a simplified mapping for tax calculation purposes
+  // Note: Some ZIP codes may cross state boundaries, this uses the primary state
   const zipToState = {
     '010': 'MA', '011': 'MA', '012': 'MA', '013': 'MA', '014': 'MA', '015': 'MA', '016': 'MA', '017': 'MA', '018': 'MA', '019': 'MA',
     '020': 'MA', '021': 'MA', '022': 'MA', '023': 'MA', '024': 'MA', '025': 'MA', '026': 'MA', '027': 'MA', '028': 'RI', '029': 'RI',
@@ -155,25 +194,55 @@
     '995': 'AK', '996': 'AK', '997': 'AK', '998': 'AK', '999': 'AK'
   };
 
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Formats a number as currency (USD)
+   * @param {number} value - The number to format
+   * @returns {string} Formatted currency string or '-' for invalid numbers
+   */
   function toCurrency(value) {
     if (!isFinite(value)) return '-';
     return value.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   }
 
+  /**
+   * Sanitizes and converts input to a valid number
+   * Removes commas and handles string/number conversion
+   * @param {string|number} input - The input to sanitize
+   * @returns {number} Sanitized number or 0 if invalid
+   */
   function sanitizeNumber(input) {
     const num = typeof input === 'number' ? input : parseFloat(String(input).replace(/,/g, ''));
     return isFinite(num) ? num : 0;
   }
 
+  /**
+   * Determines state from ZIP code using first 3 digits
+   * @param {string} zipcode - The ZIP code to analyze
+   * @returns {string} State abbreviation or 'CA' as default
+   */
   function getStateFromZipcode(zipcode) {
     const cleanZip = zipcode.replace(/\D/g, '').substring(0, 3);
     return zipToState[cleanZip] || 'CA'; // Default to CA if not found
   }
 
+  // ============================================================================
+  // TAX CALCULATION FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Calculates federal income tax using progressive tax brackets
+   * @param {number} income - Annual income to calculate tax for
+   * @returns {number} Total federal tax amount
+   */
   function calculateFederalTax(income) {
     let tax = 0;
     let remainingIncome = income;
 
+    // Apply progressive tax brackets
     for (const bracket of federalTaxBrackets) {
       if (remainingIncome <= 0) break;
       
@@ -185,9 +254,16 @@
     return tax;
   }
 
+  /**
+   * Calculates FICA taxes (Social Security and Medicare)
+   * @param {number} income - Annual income to calculate FICA tax for
+   * @returns {object} Object containing social security, medicare, and total FICA taxes
+   */
   function calculateFICATax(income) {
+    // Social Security tax (6.2% up to wage base limit)
     const socialSecurityTax = Math.min(income, ficaRates.socialSecurity.wageBase) * ficaRates.socialSecurity.rate;
     
+    // Medicare tax (1.45% on all income + 0.9% on income over threshold)
     let medicareTax = income * ficaRates.medicare.rate;
     if (income > ficaRates.medicare.additionalThreshold) {
       medicareTax += (income - ficaRates.medicare.additionalThreshold) * ficaRates.medicare.additionalRate;
@@ -200,13 +276,25 @@
     };
   }
 
+  /**
+   * Calculates state income tax
+   * @param {number} income - Annual income to calculate state tax for
+   * @param {string} state - State abbreviation
+   * @returns {number} State tax amount
+   */
   function calculateStateTax(income, state) {
     const stateRate = stateTaxRates[state] || 0;
     return income * stateRate;
   }
 
+  /**
+   * Calculates local income tax (simplified)
+   * @param {number} income - Annual income to calculate local tax for
+   * @param {string} state - State abbreviation
+   * @returns {number} Local tax amount
+   */
   function calculateLocalTax(income, state) {
-    // Simplified local tax calculation - using average rates by state
+    // Simplified local tax calculation using average rates by state
     const localTaxRates = {
       'NY': 0.03, 'CA': 0.01, 'PA': 0.02, 'OH': 0.02, 'MD': 0.03, 'IL': 0.01,
       'TX': 0.01, 'FL': 0.01, 'GA': 0.01, 'NC': 0.01, 'VA': 0.01, 'WA': 0.01
@@ -216,6 +304,12 @@
     return income * localRate;
   }
 
+  /**
+   * Calculates all applicable taxes for given income and location
+   * @param {number} income - Annual gross income
+   * @param {string} zipcode - ZIP code for state/local tax determination
+   * @returns {object} Complete tax breakdown including net income
+   */
   function calculateAllTaxes(income, zipcode) {
     const state = getStateFromZipcode(zipcode);
     const federalTax = calculateFederalTax(income);
@@ -238,6 +332,19 @@
     };
   }
 
+  // ============================================================================
+  // INCOME CALCULATION FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Converts various pay frequencies to annual income
+   * @param {number} payAmount - The pay amount
+   * @param {string} frequency - Pay frequency (hour, day, week, month, year)
+   * @param {number} hoursPerDay - Hours worked per day (for hourly calculations)
+   * @param {number} daysPerWeek - Days worked per week (for hourly/daily calculations)
+   * @param {number} weeksPerYear - Weeks worked per year (for hourly/daily/weekly calculations)
+   * @returns {number} Annual income amount
+   */
   function calculateAnnualIncome(payAmount, frequency, hoursPerDay, daysPerWeek, weeksPerYear) {
     const amount = sanitizeNumber(payAmount);
     const hpd = hoursPerDay || defaultAssumptions.hoursPerDay;
@@ -260,11 +367,22 @@
     }
   }
 
+  // ============================================================================
+  // RENDERING FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Renders the income calculation results with tax breakdown
+   * @param {number} annualIncome - Annual gross income
+   * @param {string} zipcode - ZIP code for tax calculations
+   */
   function renderResults(annualIncome, zipcode) {
+    // Calculate income breakdowns for different time periods
     const monthlyIncome = annualIncome / 12;
     const weeklyIncome = annualIncome / 52;
     const dailyIncome = weeklyIncome / 5; // approx working day
     
+    // Calculate all taxes and net income
     const taxData = calculateAllTaxes(annualIncome, zipcode);
     const monthlyNetIncome = taxData.netIncome / 12;
     
@@ -316,13 +434,22 @@
     renderBudget(monthlyNetIncome);
   }
 
-  // Budget calculation functions
+  // ============================================================================
+  // BUDGET CALCULATION FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Analyzes budget by calculating totals, remaining income, and percentages
+   * @param {number} income - Monthly income
+   * @param {object} expenses - Object containing expense categories and amounts
+   * @returns {object} Budget analysis including totals and percentages
+   */
   function calculateBudgetAnalysis(income, expenses) {
     const totalExpenses = Object.values(expenses).reduce((sum, amount) => sum + amount, 0);
     const remainingIncome = income - totalExpenses;
     const savingsRate = (remainingIncome / income) * 100;
 
-    // Calculate expense percentages
+    // Calculate expense percentages for each category
     const expensePercentages = {};
     Object.keys(expenses).forEach(key => {
       if (expenses[key] > 0) {
@@ -338,11 +465,16 @@
     };
   }
 
+  /**
+   * Generates personalized savings and investment recommendations based on budget analysis
+   * @param {object} analysis - Budget analysis object containing remaining income and savings rate
+   * @returns {array} Array of recommendation objects with amounts and descriptions
+   */
   function generateSavingsRecommendations(analysis) {
     const { remainingIncome, savingsRate, totalExpenses } = analysis;
     const recommendations = [];
 
-    // Emergency Fund
+    // Emergency Fund - Priority 1: Build 3-6 months of expenses
     if (remainingIncome > 0) {
       const emergencyFundAmount = Math.min(remainingIncome * 0.3, 500);
       recommendations.push({
@@ -355,7 +487,7 @@
       });
     }
 
-    // 401k/Retirement
+    // 401k/Retirement - Priority 2: Long-term wealth building
     if (remainingIncome > 200) {
       const retirementAmount = Math.min(remainingIncome * 0.4, 1000);
       recommendations.push({
@@ -368,7 +500,7 @@
       });
     }
 
-    // Investment Portfolio
+    // Investment Portfolio - Priority 3: Diversified growth investments
     if (remainingIncome > 300) {
       const investmentAmount = Math.min(remainingIncome * 0.3, 800);
       recommendations.push({
@@ -381,7 +513,7 @@
       });
     }
 
-    // High-Yield Savings
+    // High-Yield Savings - Priority 4: Short-term goals
     if (remainingIncome > 100) {
       const savingsAmount = Math.min(remainingIncome * 0.2, 300);
       recommendations.push({
@@ -397,11 +529,17 @@
     return recommendations;
   }
 
+  /**
+   * Generates expense recommendations based on financial best practices
+   * @param {object} expenses - Object containing expense categories and amounts
+   * @param {number} income - Monthly income
+   * @returns {array} Array of recommendation objects with warnings or success messages
+   */
   function generateExpenseRecommendations(expenses, income) {
     const recommendations = [];
     const totalExpenses = Object.values(expenses).reduce((sum, amount) => sum + amount, 0);
 
-    // Housing (should be 25-30% of income)
+    // Housing cost analysis (should be 25-30% of income)
     if (expenses.rentMortgage > 0) {
       const housingPercent = (expenses.rentMortgage / income) * 100;
       if (housingPercent > 35) {
@@ -412,7 +550,7 @@
       }
     }
 
-    // Debt payments (should be under 20% of income)
+    // Debt payment analysis (should be under 20% of income)
     if (expenses.debtPayments > 0) {
       const debtPercent = (expenses.debtPayments / income) * 100;
       if (debtPercent > 20) {
@@ -423,7 +561,7 @@
       }
     }
 
-    // Total expenses (should be under 80% of income)
+    // Overall expense analysis (should be under 80% of income for healthy savings)
     const totalExpensePercent = (totalExpenses / income) * 100;
     if (totalExpensePercent > 80) {
       recommendations.push({
@@ -440,6 +578,12 @@
     return recommendations;
   }
 
+  /**
+   * Renders the budget analysis results with recommendations
+   * @param {object} analysis - Budget analysis object
+   * @param {array} recommendations - Savings and investment recommendations
+   * @param {array} expenseRecommendations - Expense analysis recommendations
+   */
   function renderBudgetResults(analysis, recommendations, expenseRecommendations) {
     const { totalExpenses, remainingIncome, savingsRate } = analysis;
     
@@ -509,6 +653,10 @@
     budgetResultsEl.innerHTML = content;
   }
 
+  /**
+   * Renders the 50/30/15/5 budget breakdown based on monthly income
+   * @param {number} monthlyIncome - Monthly net income for budget allocation
+   */
   function renderBudget(monthlyIncome) {
     const items = budgetRules.map(rule => {
       const amount = monthlyIncome * (rule.percent / 100);
@@ -522,6 +670,10 @@
     budgetEl.innerHTML = items;
   }
 
+  /**
+   * Updates form field visibility based on pay frequency selection
+   * Shows/hides relevant fields for different pay frequency options
+   */
   function updateVisibility() {
     const frequency = payFrequencySelect.value;
     const showHour = frequency === 'hour';
@@ -533,6 +685,15 @@
     document.getElementById('weeks-per-year-field').style.display = showWeek ? '' : 'none';
   }
 
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  
+  /**
+   * Handles income calculator form submission
+   * Validates input and calculates annual income with tax breakdown
+   * @param {Event} event - Form submit event
+   */
   function onSubmit(event) {
     event.preventDefault();
     const payAmount = sanitizeNumber(payAmountInput.value);
@@ -542,12 +703,14 @@
     const wpy = sanitizeNumber(weeksPerYearInput.value) || undefined;
     const zipcode = zipcodeInput.value.trim();
 
+    // Validate pay amount
     if (payAmount <= 0) {
       resultsEl.textContent = 'Enter a valid pay amount.';
       budgetEl.innerHTML = '';
       return;
     }
 
+    // Validate ZIP code format
     if (!zipcode || !/^\d{5}(-\d{4})?$/.test(zipcode)) {
       resultsEl.textContent = 'Please enter a valid 5-digit ZIP code.';
       budgetEl.innerHTML = '';
@@ -558,6 +721,10 @@
     renderResults(annual, zipcode);
   }
 
+  /**
+   * Handles income calculator form reset
+   * Clears all form fields and results
+   */
   function onReset() {
     form.reset();
     resultsEl.textContent = '';
@@ -565,9 +732,15 @@
     updateVisibility();
   }
 
+  /**
+   * Handles budget planner form submission
+   * Analyzes expenses and generates recommendations
+   * @param {Event} event - Form submit event
+   */
   function onBudgetSubmit(event) {
     event.preventDefault();
     
+    // Collect and sanitize all form inputs
     const monthlyIncome = sanitizeNumber(document.getElementById('monthly-income').value);
     const expenses = {
       rentMortgage: sanitizeNumber(document.getElementById('rent-mortgage').value),
@@ -582,11 +755,13 @@
       miscellaneous: sanitizeNumber(document.getElementById('miscellaneous').value)
     };
 
+    // Validate monthly income
     if (monthlyIncome <= 0) {
       budgetResultsEl.textContent = 'Please enter a valid monthly income.';
       return;
     }
 
+    // Perform budget analysis and generate recommendations
     const analysis = calculateBudgetAnalysis(monthlyIncome, expenses);
     analysis.income = monthlyIncome;
     
@@ -596,13 +771,21 @@
     renderBudgetResults(analysis, savingsRecommendations, expenseRecommendations);
   }
 
+  /**
+   * Handles budget planner form reset
+   * Clears all form fields and results
+   */
   function onBudgetReset() {
     budgetForm.reset();
     budgetResultsEl.textContent = '';
   }
 
+  /**
+   * Switches between application tabs (Income Calculator / Budget Planner)
+   * @param {string} tabName - Name of the tab to switch to
+   */
   function switchTab(tabName) {
-    // Update tab buttons
+    // Update tab button states
     tabBtns.forEach(btn => {
       btn.classList.remove('active');
       if (btn.dataset.tab === tabName) {
@@ -610,7 +793,7 @@
       }
     });
 
-    // Update tab content
+    // Update tab content visibility
     tabContents.forEach(content => {
       content.classList.remove('active');
       if (content.id === `${tabName}-tab`) {
@@ -619,13 +802,19 @@
     });
   }
 
-  // init
+  // ============================================================================
+  // INITIALIZATION
+  // ============================================================================
+  
+  // Initialize form visibility and event listeners
   updateVisibility();
+  
+  // Income calculator event listeners
   form.addEventListener('submit', onSubmit);
   payFrequencySelect.addEventListener('change', updateVisibility);
   resetBtn.addEventListener('click', onReset);
 
-  // Budget form event listeners
+  // Budget planner event listeners
   budgetForm.addEventListener('submit', onBudgetSubmit);
   budgetResetBtn.addEventListener('click', onBudgetReset);
 

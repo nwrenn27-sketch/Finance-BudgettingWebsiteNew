@@ -1,16 +1,24 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- Basic HTML5 document structure -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Income & Budget Planner</title>
+  
+  <!-- Font preloading for better performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Main stylesheet -->
   <link rel="stylesheet" href="./style.css">
+  
+  <!-- SEO meta description -->
   <meta name="description" content="Calculate your annual income from hourly, daily, weekly, monthly, or yearly pay and get smart budgeting suggestions by category.">
 </head>
 <body>
+  <!-- Site Header -->
   <header class="site-header">
     <div class="container">
       <h1>Income & Budget Planner</h1>
@@ -18,8 +26,9 @@
     </div>
   </header>
 
+  <!-- Main Application Container -->
   <main class="container">
-    <!-- Navigation Tabs -->
+    <!-- Tab Navigation - Switch between Income Calculator and Budget Planner -->
     <div class="tab-navigation">
       <button class="tab-btn active" data-tab="income">Income Calculator</button>
       <button class="tab-btn" data-tab="budget">Budget Planner</button>
@@ -29,42 +38,55 @@
     <section class="tab-content active" id="income-tab" aria-labelledby="calc-title">
       <div class="card">
         <h2 id="calc-title">Income Calculator</h2>
-      <form id="income-form" class="grid">
-        <div class="field">
-          <label for="pay-amount">Pay amount</label>
-          <input id="pay-amount" name="payAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 25" required>
-        </div>
-        <div class="field">
-          <label for="pay-frequency">Pay frequency</label>
-          <select id="pay-frequency" name="payFrequency" required>
-            <option value="hour">Per hour</option>
-            <option value="day">Per day</option>
-            <option value="week">Per week</option>
-            <option value="month">Per month</option>
-            <option value="year">Per year</option>
-          </select>
-        </div>
-        <div class="field" id="hours-per-day-field">
-          <label for="hours-per-day">Hours per day</label>
-          <input id="hours-per-day" name="hoursPerDay" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 8">
-        </div>
-        <div class="field" id="days-per-week-field">
-          <label for="days-per-week">Days per week</label>
-          <input id="days-per-week" name="daysPerWeek" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 5">
-        </div>
-        <div class="field" id="weeks-per-year-field">
-          <label for="weeks-per-year">Weeks per year</label>
-          <input id="weeks-per-year" name="weeksPerYear" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 52">
-        </div>
-        <div class="field">
-          <label for="zipcode">ZIP Code</label>
-          <input id="zipcode" name="zipcode" type="text" pattern="[0-9]{5}(-[0-9]{4})?" placeholder="e.g., 12345" required>
-        </div>
-        <div class="actions">
-          <button type="submit" class="btn-primary">Calculate</button>
-          <button type="button" id="reset-btn" class="btn-secondary">Reset</button>
-        </div>
-      </form>
+        
+        <!-- Income Calculator Form -->
+        <form id="income-form" class="grid">
+          <!-- Pay Amount Input -->
+          <div class="field">
+            <label for="pay-amount">Pay amount</label>
+            <input id="pay-amount" name="payAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 25" required>
+          </div>
+          
+          <!-- Pay Frequency Selection -->
+          <div class="field">
+            <label for="pay-frequency">Pay frequency</label>
+            <select id="pay-frequency" name="payFrequency" required>
+              <option value="hour">Per hour</option>
+              <option value="day">Per day</option>
+              <option value="week">Per week</option>
+              <option value="month">Per month</option>
+              <option value="year">Per year</option>
+            </select>
+          </div>
+          
+          <!-- Work Schedule Fields (shown/hidden based on frequency) -->
+          <div class="field" id="hours-per-day-field">
+            <label for="hours-per-day">Hours per day</label>
+            <input id="hours-per-day" name="hoursPerDay" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 8">
+          </div>
+          <div class="field" id="days-per-week-field">
+            <label for="days-per-week">Days per week</label>
+            <input id="days-per-week" name="daysPerWeek" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 5">
+          </div>
+          <div class="field" id="weeks-per-year-field">
+            <label for="weeks-per-year">Weeks per year</label>
+            <input id="weeks-per-year" name="weeksPerYear" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 52">
+          </div>
+          
+          <!-- ZIP Code for Tax Calculation -->
+          <div class="field">
+            <label for="zipcode">ZIP Code</label>
+            <input id="zipcode" name="zipcode" type="text" pattern="[0-9]{5}(-[0-9]{4})?" placeholder="e.g., 12345" required>
+          </div>
+          
+          <!-- Form Actions -->
+          <div class="actions">
+            <button type="submit" class="btn-primary">Calculate</button>
+            <button type="button" id="reset-btn" class="btn-secondary">Reset</button>
+          </div>
+        </form>
+        
+        <!-- Results Display Area -->
         <div id="results" class="results" aria-live="polite"></div>
       </div>
     </section>
@@ -75,7 +97,9 @@
         <h2 id="budget-title">Personal Budget Planner</h2>
         <p>Input your monthly expenses to get personalized savings and investment recommendations.</p>
         
+        <!-- Budget Analysis Form -->
         <form id="budget-form" class="budget-form">
+          <!-- Monthly Income Section -->
           <div class="budget-section">
             <h3>Monthly Income</h3>
             <div class="field">
@@ -84,6 +108,7 @@
             </div>
           </div>
 
+          <!-- Essential Expenses Section -->
           <div class="budget-section">
             <h3>Essential Expenses</h3>
             <div class="expense-grid">
@@ -114,6 +139,7 @@
             </div>
           </div>
 
+          <!-- Discretionary Expenses Section -->
           <div class="budget-section">
             <h3>Discretionary Expenses</h3>
             <div class="expense-grid">
@@ -136,23 +162,27 @@
             </div>
           </div>
 
+          <!-- Form Actions -->
           <div class="actions">
             <button type="submit" class="btn-primary">Analyze Budget</button>
             <button type="button" id="budget-reset-btn" class="btn-secondary">Reset</button>
           </div>
         </form>
 
+        <!-- Budget Analysis Results Display -->
         <div id="budget-results" class="budget-results" aria-live="polite"></div>
       </div>
     </section>
   </main>
 
+  <!-- Site Footer -->
   <footer class="site-footer">
     <div class="container">
       <p>For guidance only. Adjust to your needs, goals, and location.</p>
     </div>
   </footer>
 
+  <!-- Main Application JavaScript -->
   <script src="./script.js" defer></script>
   
 </body>
