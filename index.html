@@ -32,6 +32,7 @@
     <div class="tab-navigation">
       <button class="tab-btn active" data-tab="income">Income Calculator</button>
       <button class="tab-btn" data-tab="budget">Budget Planner</button>
+      <button class="tab-btn" data-tab="investment">Safe Investments</button>
     </div>
 
     <!-- Income Calculator Tab -->
@@ -171,6 +172,67 @@
 
         <!-- Budget Analysis Results Display -->
         <div id="budget-results" class="budget-results" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Safe Investments Tab -->
+    <section class="tab-content" id="investment-tab" aria-labelledby="investment-title">
+      <div class="card">
+        <h2 id="investment-title">Safe Investment Recommendations</h2>
+        <p>Get data-driven recommendations for safe, dividend-paying stocks and ETFs based on your budget.</p>
+        <div class="api-notice">
+          <p><strong>Note:</strong> For real-time stock prices, get a free API key from <a href="https://www.alphavantage.co/support/#api-key" target="_blank">Alpha Vantage</a> and update the script.js file.</p>
+        </div>
+
+        <!-- Investment Parameters Form -->
+        <form id="investment-form" class="investment-form">
+          <!-- Investment Amount Section -->
+          <div class="budget-section">
+            <h3>Investment Parameters</h3>
+            <div class="expense-grid">
+              <div class="field">
+                <label for="investment-amount">Monthly Investment Amount</label>
+                <input id="investment-amount" name="investmentAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 500" required>
+              </div>
+              <div class="field">
+                <label for="risk-tolerance">Risk Tolerance</label>
+                <select id="risk-tolerance" name="riskTolerance" required>
+                  <option value="conservative">Conservative (Low Risk)</option>
+                  <option value="moderate" selected>Moderate (Medium Risk)</option>
+                  <option value="aggressive">Aggressive (Higher Risk)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="investment-timeframe">Investment Timeframe</label>
+                <select id="investment-timeframe" name="investmentTimeframe" required>
+                  <option value="short">1-3 years</option>
+                  <option value="medium" selected>3-10 years</option>
+                  <option value="long">10+ years</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="focus-type">Investment Focus</label>
+                <select id="focus-type" name="focusType" required>
+                  <option value="dividend" selected>Dividend Income</option>
+                  <option value="growth">Long-term Growth</option>
+                  <option value="balanced">Balanced Approach</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="actions">
+            <button type="submit" class="btn-primary">Get Recommendations</button>
+            <button type="button" id="investment-reset-btn" class="btn-secondary">Reset</button>
+          </div>
+        </form>
+
+        <!-- Investment Recommendations Display -->
+        <div id="investment-results" class="investment-results" aria-live="polite"></div>
+
+        <!-- API Status Display -->
+        <div id="api-status" class="api-status" style="display: none;"></div>
       </div>
     </section>
   </main>

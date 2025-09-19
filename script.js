@@ -29,6 +29,13 @@
   const budgetForm = document.getElementById('budget-form');
   const budgetResultsEl = document.getElementById('budget-results');
   const budgetResetBtn = document.getElementById('budget-reset-btn');
+
+  // Investment form elements
+  const investmentForm = document.getElementById('investment-form');
+  const investmentResultsEl = document.getElementById('investment-results');
+  const investmentResetBtn = document.getElementById('investment-reset-btn');
+  const apiStatusEl = document.getElementById('api-status');
+
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -193,6 +200,81 @@
     '984': 'WA', '985': 'WA', '986': 'WA', '988': 'WA', '989': 'WA', '990': 'WA', '991': 'WA', '992': 'WA', '993': 'WA', '994': 'WA',
     '995': 'AK', '996': 'AK', '997': 'AK', '998': 'AK', '999': 'AK'
   };
+
+  // ============================================================================
+  // INVESTMENT CONFIGURATION
+  // ============================================================================
+
+  // Alpha Vantage API configuration
+  const ALPHA_VANTAGE_CONFIG = {
+    apiKey: 'demo', // Users need to get their own key from https://www.alphavantage.co/support/#api-key
+    baseUrl: 'https://www.alphavantage.co/query',
+    rateLimitDelay: 12000, // 12 seconds between requests (5 calls per minute limit)
+    maxRetries: 3
+  };
+
+  // Safe investment options categorized by risk tolerance and focus
+  const SAFE_INVESTMENTS = {
+    conservative: {
+      dividend: [
+        { symbol: 'JNJ', name: 'Johnson & Johnson', type: 'stock', sector: 'Healthcare' },
+        { symbol: 'PG', name: 'Procter & Gamble', type: 'stock', sector: 'Consumer Staples' },
+        { symbol: 'KO', name: 'Coca-Cola', type: 'stock', sector: 'Consumer Staples' },
+        { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'VXUS', name: 'Vanguard Total International Stock ETF', type: 'etf', sector: 'International' }
+      ],
+      growth: [
+        { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'VTIAX', name: 'Vanguard Total International Stock Index', type: 'etf', sector: 'International' },
+        { symbol: 'BND', name: 'Vanguard Total Bond Market ETF', type: 'etf', sector: 'Bonds' }
+      ],
+      balanced: [
+        { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'BND', name: 'Vanguard Total Bond Market ETF', type: 'etf', sector: 'Bonds' },
+        { symbol: 'JNJ', name: 'Johnson & Johnson', type: 'stock', sector: 'Healthcare' }
+      ]
+    },
+    moderate: {
+      dividend: [
+        { symbol: 'AAPL', name: 'Apple Inc.', type: 'stock', sector: 'Technology' },
+        { symbol: 'MSFT', name: 'Microsoft', type: 'stock', sector: 'Technology' },
+        { symbol: 'JPM', name: 'JPMorgan Chase', type: 'stock', sector: 'Financial' },
+        { symbol: 'VYM', name: 'Vanguard High Dividend Yield ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'SCHD', name: 'Schwab US Dividend Equity ETF', type: 'etf', sector: 'Diversified' }
+      ],
+      growth: [
+        { symbol: 'VOO', name: 'Vanguard S&P 500 ETF', type: 'etf', sector: 'Large Cap' },
+        { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'etf', sector: 'Technology' },
+        { symbol: 'VEA', name: 'Vanguard FTSE Developed Markets ETF', type: 'etf', sector: 'International' }
+      ],
+      balanced: [
+        { symbol: 'VOO', name: 'Vanguard S&P 500 ETF', type: 'etf', sector: 'Large Cap' },
+        { symbol: 'VYM', name: 'Vanguard High Dividend Yield ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'BND', name: 'Vanguard Total Bond Market ETF', type: 'etf', sector: 'Bonds' }
+      ]
+    },
+    aggressive: {
+      dividend: [
+        { symbol: 'VYM', name: 'Vanguard High Dividend Yield ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'SCHD', name: 'Schwab US Dividend Equity ETF', type: 'etf', sector: 'Diversified' },
+        { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'stock', sector: 'Technology' }
+      ],
+      growth: [
+        { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'etf', sector: 'Technology' },
+        { symbol: 'VGT', name: 'Vanguard Information Technology ETF', type: 'etf', sector: 'Technology' },
+        { symbol: 'VUG', name: 'Vanguard Growth ETF', type: 'etf', sector: 'Growth' }
+      ],
+      balanced: [
+        { symbol: 'VOO', name: 'Vanguard S&P 500 ETF', type: 'etf', sector: 'Large Cap' },
+        { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'etf', sector: 'Technology' },
+        { symbol: 'VYM', name: 'Vanguard High Dividend Yield ETF', type: 'etf', sector: 'Diversified' }
+      ]
+    }
+  };
+
+  // Rate limiting for API calls
+  let lastApiCall = 0;
+  let apiCallQueue = [];
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -780,8 +862,252 @@
     budgetResultsEl.textContent = '';
   }
 
+  // ============================================================================
+  // INVESTMENT FUNCTIONS
+  // ============================================================================
+
   /**
-   * Switches between application tabs (Income Calculator / Budget Planner)
+   * Makes API call to Alpha Vantage with rate limiting
+   * @param {string} symbol - Stock symbol to fetch
+   * @param {string} functionType - API function type
+   * @returns {Promise<Object>} API response data
+   */
+  async function fetchAlphaVantageData(symbol, functionType = 'GLOBAL_QUOTE') {
+    const now = Date.now();
+    const timeSinceLastCall = now - lastApiCall;
+
+    if (timeSinceLastCall < ALPHA_VANTAGE_CONFIG.rateLimitDelay) {
+      const waitTime = ALPHA_VANTAGE_CONFIG.rateLimitDelay - timeSinceLastCall;
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+
+    const url = `${ALPHA_VANTAGE_CONFIG.baseUrl}?function=${functionType}&symbol=${symbol}&apikey=${ALPHA_VANTAGE_CONFIG.apiKey}`;
+
+    try {
+      updateApiStatus('Fetching data for ' + symbol + '...');
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      lastApiCall = Date.now();
+
+      if (data['Error Message']) {
+        throw new Error('Invalid symbol: ' + symbol);
+      }
+
+      if (data['Note']) {
+        throw new Error('API rate limit exceeded. Please wait and try again.');
+      }
+
+      updateApiStatus('Data received for ' + symbol);
+      return data;
+
+    } catch (error) {
+      updateApiStatus('Error: ' + error.message, true);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates API status display
+   * @param {string} message - Status message
+   * @param {boolean} isError - Whether this is an error message
+   */
+  function updateApiStatus(message, isError = false) {
+    if (apiStatusEl) {
+      apiStatusEl.style.display = 'block';
+      apiStatusEl.textContent = message;
+      apiStatusEl.className = isError ? 'api-status error' : 'api-status';
+
+      if (!isError) {
+        setTimeout(() => {
+          apiStatusEl.style.display = 'none';
+        }, 3000);
+      }
+    }
+  }
+
+  /**
+   * Gets stock recommendations based on user preferences
+   * @param {string} riskTolerance - conservative, moderate, aggressive
+   * @param {string} focusType - dividend, growth, balanced
+   * @returns {Array} Array of recommended investments
+   */
+  function getInvestmentRecommendations(riskTolerance, focusType) {
+    const recommendations = SAFE_INVESTMENTS[riskTolerance]?.[focusType] || [];
+    return recommendations.slice(0, 5); // Return top 5 recommendations
+  }
+
+  /**
+   * Processes investment form submission
+   * @param {Event} event - Form submission event
+   */
+  async function onInvestmentSubmit(event) {
+    event.preventDefault();
+
+    const formData = new FormData(investmentForm);
+    const investmentAmount = toNumber(formData.get('investmentAmount'));
+    const riskTolerance = formData.get('riskTolerance');
+    const investmentTimeframe = formData.get('investmentTimeframe');
+    const focusType = formData.get('focusType');
+
+    if (investmentAmount <= 0) {
+      displayInvestmentError('Please enter a valid investment amount.');
+      return;
+    }
+
+    try {
+      displayInvestmentResults(investmentAmount, riskTolerance, investmentTimeframe, focusType);
+    } catch (error) {
+      displayInvestmentError('An error occurred while generating recommendations: ' + error.message);
+    }
+  }
+
+  /**
+   * Displays investment recommendations and analysis
+   * @param {number} amount - Monthly investment amount
+   * @param {string} risk - Risk tolerance
+   * @param {string} timeframe - Investment timeframe
+   * @param {string} focus - Investment focus type
+   */
+  async function displayInvestmentResults(amount, risk, timeframe, focus) {
+    investmentResultsEl.innerHTML = '<div class="loading">Generating recommendations...</div>';
+
+    const recommendations = getInvestmentRecommendations(risk, focus);
+
+    if (recommendations.length === 0) {
+      displayInvestmentError('No recommendations found for your criteria.');
+      return;
+    }
+
+    let resultsHTML = `
+      <div class="investment-summary">
+        <h3>Investment Recommendations</h3>
+        <div class="investment-params">
+          <p><strong>Monthly Investment:</strong> ${toCurrency(amount)}</p>
+          <p><strong>Annual Investment:</strong> ${toCurrency(amount * 12)}</p>
+          <p><strong>Risk Level:</strong> ${risk.charAt(0).toUpperCase() + risk.slice(1)}</p>
+          <p><strong>Focus:</strong> ${focus.charAt(0).toUpperCase() + focus.slice(1)}</p>
+          <p><strong>Timeframe:</strong> ${timeframe === 'short' ? '1-3 years' : timeframe === 'medium' ? '3-10 years' : '10+ years'}</p>
+        </div>
+      </div>
+
+      <div class="recommendations-grid">
+    `;
+
+    // Get real-time data for first 3 recommendations (to respect API limits)
+    for (let i = 0; i < Math.min(recommendations.length, 3); i++) {
+      const investment = recommendations[i];
+      let priceData = null;
+
+      try {
+        if (ALPHA_VANTAGE_CONFIG.apiKey !== 'demo') {
+          const data = await fetchAlphaVantageData(investment.symbol);
+          priceData = data['Global Quote'];
+        }
+      } catch (error) {
+        console.log('Could not fetch real-time data for', investment.symbol, ':', error.message);
+      }
+
+      const currentPrice = priceData ? parseFloat(priceData['05. price']) : null;
+      const priceChange = priceData ? parseFloat(priceData['09. change']) : null;
+      const changePercent = priceData ? parseFloat(priceData['10. change percent'].replace('%', '')) : null;
+
+      resultsHTML += `
+        <div class="recommendation-card">
+          <div class="rec-header">
+            <h4>${investment.symbol}</h4>
+            <span class="rec-type">${investment.type.toUpperCase()}</span>
+          </div>
+          <p class="rec-name">${investment.name}</p>
+          <p class="rec-sector">${investment.sector}</p>
+          ${currentPrice ? `
+            <div class="price-info">
+              <span class="current-price">${toCurrency(currentPrice)}</span>
+              <span class="price-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                ${priceChange >= 0 ? '+' : ''}${toCurrency(priceChange)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)
+              </span>
+            </div>
+          ` : `
+            <div class="price-info">
+              <span class="price-note">Real-time data unavailable</span>
+            </div>
+          `}
+          <div class="allocation-suggestion">
+            <p>Suggested allocation: ${Math.round(100 / recommendations.length)}% (${toCurrency(amount * (1 / recommendations.length))} monthly)</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Add remaining recommendations without real-time data
+    for (let i = 3; i < recommendations.length; i++) {
+      const investment = recommendations[i];
+      resultsHTML += `
+        <div class="recommendation-card">
+          <div class="rec-header">
+            <h4>${investment.symbol}</h4>
+            <span class="rec-type">${investment.type.toUpperCase()}</span>
+          </div>
+          <p class="rec-name">${investment.name}</p>
+          <p class="rec-sector">${investment.sector}</p>
+          <div class="price-info">
+            <span class="price-note">Real-time data unavailable</span>
+          </div>
+          <div class="allocation-suggestion">
+            <p>Suggested allocation: ${Math.round(100 / recommendations.length)}% (${toCurrency(amount * (1 / recommendations.length))} monthly)</p>
+          </div>
+        </div>
+      `;
+    }
+
+    resultsHTML += `
+      </div>
+
+      <div class="investment-tips">
+        <h4>Important Notes:</h4>
+        <ul>
+          <li>Diversification is key - consider spreading investments across multiple assets</li>
+          <li>This is for educational purposes only - consult a financial advisor for personalized advice</li>
+          <li>Past performance does not guarantee future results</li>
+          <li>Consider your emergency fund and debt payments before investing</li>
+          ${ALPHA_VANTAGE_CONFIG.apiKey === 'demo' ? '<li>⚠️ Using demo data - get a free API key from Alpha Vantage for real-time prices</li>' : ''}
+        </ul>
+      </div>
+    `;
+
+    investmentResultsEl.innerHTML = resultsHTML;
+  }
+
+  /**
+   * Displays investment error message
+   * @param {string} message - Error message to display
+   */
+  function displayInvestmentError(message) {
+    investmentResultsEl.innerHTML = `
+      <div class="error-message">
+        <h4>Error</h4>
+        <p>${message}</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Resets the investment form and results
+   */
+  function onInvestmentReset() {
+    investmentForm.reset();
+    investmentResultsEl.textContent = '';
+    if (apiStatusEl) {
+      apiStatusEl.style.display = 'none';
+    }
+  }
+
+  /**
+   * Switches between application tabs (Income Calculator / Budget Planner / Safe Investments)
    * @param {string} tabName - Name of the tab to switch to
    */
   function switchTab(tabName) {
@@ -817,6 +1143,10 @@
   // Budget planner event listeners
   budgetForm.addEventListener('submit', onBudgetSubmit);
   budgetResetBtn.addEventListener('click', onBudgetReset);
+
+  // Investment form event listeners
+  investmentForm.addEventListener('submit', onInvestmentSubmit);
+  investmentResetBtn.addEventListener('click', onInvestmentReset);
 
   // Tab navigation event listeners
   tabBtns.forEach(btn => {
