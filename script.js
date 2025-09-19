@@ -29,6 +29,30 @@
   const budgetForm = document.getElementById('budget-form');
   const budgetResultsEl = document.getElementById('budget-results');
   const budgetResetBtn = document.getElementById('budget-reset-btn');
+  const monthlyIncomeInput = document.getElementById('monthly-income'); // Hidden budget planner income field to auto-fill with net calculation
+  const monthlyIncomeDisplay = document.getElementById('monthly-income-display'); // Visible monthly income readout
+
+  const expenseFieldConfig = [
+    { key: 'rentMortgage', amountId: 'rent-mortgage-amount', sliderId: 'rent-mortgage-slider', displayId: 'rent-mortgage-display', summaryId: 'summary-rent-mortgage' },
+    { key: 'utilities', amountId: 'utilities-amount', sliderId: 'utilities-slider', displayId: 'utilities-display', summaryId: 'summary-utilities' },
+    { key: 'groceries', amountId: 'groceries-amount', sliderId: 'groceries-slider', displayId: 'groceries-display', summaryId: 'summary-groceries' },
+    { key: 'transportation', amountId: 'transportation-amount', sliderId: 'transportation-slider', displayId: 'transportation-display', summaryId: 'summary-transportation' },
+    { key: 'insurance', amountId: 'insurance-amount', sliderId: 'insurance-slider', displayId: 'insurance-display', summaryId: 'summary-insurance' },
+    { key: 'debtPayments', amountId: 'debt-payments-amount', sliderId: 'debt-payments-slider', displayId: 'debt-payments-display', summaryId: 'summary-debt-payments' },
+    { key: 'diningOut', amountId: 'dining-out-amount', sliderId: 'dining-out-slider', displayId: 'dining-out-display', summaryId: 'summary-dining-out' },
+    { key: 'shopping', amountId: 'shopping-amount', sliderId: 'shopping-slider', displayId: 'shopping-display', summaryId: 'summary-shopping' },
+    { key: 'subscriptions', amountId: 'subscriptions-amount', sliderId: 'subscriptions-slider', displayId: 'subscriptions-display', summaryId: 'summary-subscriptions' },
+    { key: 'miscellaneous', amountId: 'miscellaneous-amount', sliderId: 'miscellaneous-slider', displayId: 'miscellaneous-display', summaryId: 'summary-miscellaneous' }
+  ];
+
+  expenseFieldConfig.forEach(config => {
+    config.amountEl = document.getElementById(config.amountId);
+    config.sliderEl = document.getElementById(config.sliderId);
+    config.displayEl = document.getElementById(config.displayId);
+    config.summaryEl = document.getElementById(config.summaryId);
+  });
+
+  const summaryRemainingEl = document.getElementById('summary-remaining');
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -385,7 +409,11 @@
     // Calculate all taxes and net income
     const taxData = calculateAllTaxes(annualIncome, zipcode);
     const monthlyNetIncome = taxData.netIncome / 12;
-    
+
+    if (monthlyIncomeInput) {
+      applyMonthlyIncomeAutoFill(monthlyNetIncome);
+    }
+
     const content = `
       <div class="income-summary">
         <h3>Gross Income</h3>
@@ -671,6 +699,80 @@
   }
 
   /**
+   * Returns the currently stored monthly income value
+   * @returns {number} Monthly net income
+   */
+  function getMonthlyIncomeValue() {
+    return monthlyIncomeInput ? sanitizeNumber(monthlyIncomeInput.value) : 0;
+  }
+
+  /**
+   * Updates visual slider and summary data for a given expense configuration
+   * @param {object} config - Expense configuration containing DOM references
+   * @param {number} income - Monthly income used for percentage calculations
+   * @returns {{amount: number, percent: number}} Expense amount and its percentage of income
+   */
+  function updateExpenseVisual(config, income) {
+    const amountEl = config.amountEl;
+    if (!amountEl) return { amount: 0, percent: 0 };
+
+    const amount = sanitizeNumber(amountEl.value);
+    const percent = income > 0 ? (amount / income) * 100 : 0;
+    const sliderPercent = Math.max(0, Math.min(percent, 100));
+
+    if (config.sliderEl) {
+      config.sliderEl.value = sliderPercent;
+      config.sliderEl.style.setProperty('--range-progress', `${sliderPercent}%`);
+    }
+
+    const displayText = `${percent.toFixed(1)}% · ${toCurrency(amount)}`;
+    if (config.displayEl) {
+      config.displayEl.textContent = displayText;
+    }
+    if (config.summaryEl) {
+      config.summaryEl.textContent = displayText;
+    }
+
+    return { amount, percent };
+  }
+
+  /**
+   * Updates all expense visualizations and remaining income summary
+   */
+  function updateAllExpenseVisuals() {
+    const income = getMonthlyIncomeValue();
+    let totalExpenses = 0;
+
+    expenseFieldConfig.forEach(config => {
+      const result = updateExpenseVisual(config, income);
+      totalExpenses += result.amount;
+    });
+
+    if (summaryRemainingEl) {
+      const remaining = income - totalExpenses;
+      const remainingPercent = income > 0 ? (remaining / income) * 100 : 0;
+      summaryRemainingEl.textContent = `${remainingPercent.toFixed(1)}% · ${toCurrency(remaining)}`;
+    }
+  }
+
+  /**
+   * Applies calculated monthly net income to the budget planner display
+   * @param {number} netMonthlyIncome - Monthly take-home pay to inject
+   */
+  function applyMonthlyIncomeAutoFill(netMonthlyIncome) {
+    if (!monthlyIncomeInput) return;
+
+    const normalized = Math.max(0, Number(netMonthlyIncome) || 0);
+    monthlyIncomeInput.value = normalized.toFixed(2);
+
+    if (monthlyIncomeDisplay) {
+      monthlyIncomeDisplay.textContent = toCurrency(normalized);
+    }
+
+    updateAllExpenseVisuals();
+  }
+
+  /**
    * Updates form field visibility based on pay frequency selection
    * Shows/hides relevant fields for different pay frequency options
    */
@@ -741,19 +843,12 @@
     event.preventDefault();
     
     // Collect and sanitize all form inputs
-    const monthlyIncome = sanitizeNumber(document.getElementById('monthly-income').value);
-    const expenses = {
-      rentMortgage: sanitizeNumber(document.getElementById('rent-mortgage').value),
-      utilities: sanitizeNumber(document.getElementById('utilities').value),
-      groceries: sanitizeNumber(document.getElementById('groceries').value),
-      transportation: sanitizeNumber(document.getElementById('transportation').value),
-      insurance: sanitizeNumber(document.getElementById('insurance').value),
-      debtPayments: sanitizeNumber(document.getElementById('debt-payments').value),
-      diningOut: sanitizeNumber(document.getElementById('dining-out').value),
-      shopping: sanitizeNumber(document.getElementById('shopping').value),
-      subscriptions: sanitizeNumber(document.getElementById('subscriptions').value),
-      miscellaneous: sanitizeNumber(document.getElementById('miscellaneous').value)
-    };
+    const monthlyIncome = sanitizeNumber(monthlyIncomeInput.value);
+    const expenses = expenseFieldConfig.reduce((acc, config) => {
+      const amountEl = config.amountEl;
+      acc[config.key] = amountEl ? sanitizeNumber(amountEl.value) : 0;
+      return acc;
+    }, {});
 
     // Validate monthly income
     if (monthlyIncome <= 0) {
@@ -776,8 +871,14 @@
    * Clears all form fields and results
    */
   function onBudgetReset() {
+    const incomeSnapshot = getMonthlyIncomeValue();
     budgetForm.reset();
     budgetResultsEl.textContent = '';
+    monthlyIncomeInput.value = incomeSnapshot.toFixed(2);
+    if (monthlyIncomeDisplay) {
+      monthlyIncomeDisplay.textContent = toCurrency(incomeSnapshot);
+    }
+    updateAllExpenseVisuals();
   }
 
   /**
@@ -818,6 +919,14 @@
   budgetForm.addEventListener('submit', onBudgetSubmit);
   budgetResetBtn.addEventListener('click', onBudgetReset);
 
+  expenseFieldConfig.forEach(config => {
+    if (config.amountEl) {
+      config.amountEl.addEventListener('input', updateAllExpenseVisuals);
+    }
+  });
+
+  updateAllExpenseVisuals();
+
   // Tab navigation event listeners
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -825,4 +934,3 @@
     });
   });
 })();
-
