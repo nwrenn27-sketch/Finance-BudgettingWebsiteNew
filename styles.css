@@ -169,6 +169,7 @@ body {
    ============================================================================ */
 
 /* Tab content visibility control */
+/* Hidden by default; the active class is toggled from script.js when switching tabs */
 .tab-content {
   display: none;
 }
@@ -690,5 +691,4 @@ label {
     text-align: center;
   }
 }
-
 

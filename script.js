@@ -311,13 +311,13 @@
    * @returns {object} Complete tax breakdown including net income
    */
   function calculateAllTaxes(income, zipcode) {
-    const state = getStateFromZipcode(zipcode);
+    const state = getStateFromZipcode(zipcode); // Map ZIP prefix to state for localized tax rates
     const federalTax = calculateFederalTax(income);
     const ficaTax = calculateFICATax(income);
     const stateTax = calculateStateTax(income, state);
     const localTax = calculateLocalTax(income, state);
     
-    const totalTaxes = federalTax + ficaTax.total + stateTax + localTax;
+    const totalTaxes = federalTax + ficaTax.total + stateTax + localTax; // Aggregate every withholding bucket
     const netIncome = income - totalTaxes;
 
     return {
@@ -429,7 +429,7 @@
         <p><strong>Monthly:</strong> ${toCurrency(monthlyNetIncome)} · <strong>Weekly:</strong> ${toCurrency(taxData.netIncome / 52)} · <strong>Daily (workday est.):</strong> ${toCurrency(taxData.netIncome / 52 / 5)}</p>
       </div>
     `;
-    resultsEl.innerHTML = content;
+    resultsEl.innerHTML = content; // Replace previous markup with the latest calculation output
 
     renderBudget(monthlyNetIncome);
   }
@@ -667,7 +667,7 @@
         </div>
       `;
     }).join('');
-    budgetEl.innerHTML = items;
+    budgetEl.innerHTML = items; // Present the guideline allocations alongside income results
   }
 
   /**
@@ -763,7 +763,7 @@
 
     // Perform budget analysis and generate recommendations
     const analysis = calculateBudgetAnalysis(monthlyIncome, expenses);
-    analysis.income = monthlyIncome;
+    analysis.income = monthlyIncome; // Persist income on the analysis object for downstream render helpers
     
     const savingsRecommendations = generateSavingsRecommendations(analysis);
     const expenseRecommendations = generateExpenseRecommendations(expenses, monthlyIncome);
@@ -825,5 +825,4 @@
     });
   });
 })();
-
 

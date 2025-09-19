@@ -87,6 +87,7 @@
         </form>
         
         <!-- Results Display Area -->
+        <!-- Populated from JavaScript; aria-live ensures screen readers announce recalculated figures -->
         <div id="results" class="results" aria-live="polite"></div>
       </div>
     </section>
@@ -140,6 +141,7 @@
           </div>
 
           <!-- Discretionary Expenses Section -->
+          <!-- Helps highlight lifestyle spending so the recommendations can flag cutback opportunities -->
           <div class="budget-section">
             <h3>Discretionary Expenses</h3>
             <div class="expense-grid">
@@ -170,6 +172,7 @@
         </form>
 
         <!-- Budget Analysis Results Display -->
+        <!-- This container receives synthesized guidance (alerts + savings tips) generated in script.js -->
         <div id="budget-results" class="budget-results" aria-live="polite"></div>
       </div>
     </section>
@@ -187,4 +190,3 @@
   
 </body>
 </html>
-
