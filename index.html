@@ -88,6 +88,7 @@
         </form>
         
         <!-- Results Display Area -->
+        <!-- Populated from JavaScript; aria-live ensures screen readers announce recalculated figures -->
         <div id="results" class="results" aria-live="polite"></div>
       </div>
     </section>
@@ -97,15 +98,66 @@
       <div class="card">
         <h2 id="budget-title">Personal Budget Planner</h2>
         <p>Input your monthly expenses to get personalized savings and investment recommendations.</p>
-        
+
+        <div class="budget-overview" id="budget-overview">
+          <h3>Budget Distribution</h3>
+          <div class="overview-grid">
+            <div class="overview-item">
+              <span class="label">Rent/Mortgage</span>
+              <span class="value" id="summary-rent-mortgage">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Utilities</span>
+              <span class="value" id="summary-utilities">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Groceries</span>
+              <span class="value" id="summary-groceries">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Transportation</span>
+              <span class="value" id="summary-transportation">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Insurance</span>
+              <span class="value" id="summary-insurance">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Debt Payments</span>
+              <span class="value" id="summary-debt-payments">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Dining Out</span>
+              <span class="value" id="summary-dining-out">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Shopping</span>
+              <span class="value" id="summary-shopping">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Subscriptions</span>
+              <span class="value" id="summary-subscriptions">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Miscellaneous</span>
+              <span class="value" id="summary-miscellaneous">0% · $0</span>
+            </div>
+            <div class="overview-item">
+              <span class="label">Remaining Income</span>
+              <span class="value" id="summary-remaining">100% · $0</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Budget Analysis Form -->
         <form id="budget-form" class="budget-form">
           <!-- Monthly Income Section -->
           <div class="budget-section">
             <h3>Monthly Income</h3>
-            <div class="field">
+            <div class="income-display">
               <label for="monthly-income">Monthly Net Income (After Taxes)</label>
-              <input id="monthly-income" name="monthlyIncome" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 4000" required>
+              <div id="monthly-income-display" class="income-amount">$0</div>
+              <input id="monthly-income" name="monthlyIncome" type="hidden" value="0">
             </div>
           </div>
 
@@ -113,52 +165,123 @@
           <div class="budget-section">
             <h3>Essential Expenses</h3>
             <div class="expense-grid">
-              <div class="field">
-                <label for="rent-mortgage">Rent/Mortgage</label>
-                <input id="rent-mortgage" name="rentMortgage" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 1200">
+              <div class="field expense-field">
+                <label for="rent-mortgage-amount">Rent/Mortgage</label>
+                <input id="rent-mortgage-amount" class="expense-input" name="rentMortgage" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 1200">
+                <div class="expense-visual">
+                  <input id="rent-mortgage-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="rent-mortgage-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="utilities">Utilities (Electric, Gas, Water)</label>
-                <input id="utilities" name="utilities" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+              <div class="field expense-field">
+                <label for="utilities-amount">Utilities (Electric, Gas, Water)</label>
+                <input id="utilities-amount" class="expense-input" name="utilities" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+                <div class="expense-visual">
+                  <input id="utilities-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="utilities-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="groceries">Groceries & Food</label>
-                <input id="groceries" name="groceries" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 400">
+              <div class="field expense-field">
+                <label for="groceries-amount">Groceries & Food</label>
+                <input id="groceries-amount" class="expense-input" name="groceries" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 400">
+                <div class="expense-visual">
+                  <input id="groceries-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="groceries-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="transportation">Transportation (Gas, Public Transit)</label>
-                <input id="transportation" name="transportation" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+              <div class="field expense-field">
+                <label for="transportation-amount">Transportation (Gas, Public Transit)</label>
+                <input id="transportation-amount" class="expense-input" name="transportation" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+                <div class="expense-visual">
+                  <input id="transportation-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="transportation-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="insurance">Insurance (Health, Auto, Home)</label>
-                <input id="insurance" name="insurance" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 250">
+              <div class="field expense-field">
+                <label for="insurance-amount">Insurance (Health, Auto, Home)</label>
+                <input id="insurance-amount" class="expense-input" name="insurance" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 250">
+                <div class="expense-visual">
+                  <input id="insurance-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="insurance-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="debt-payments">Debt Payments (Credit Cards, Loans)</label>
-                <input id="debt-payments" name="debtPayments" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+              <div class="field expense-field">
+                <label for="debt-payments-amount">Debt Payments (Credit Cards, Loans)</label>
+                <input id="debt-payments-amount" class="expense-input" name="debtPayments" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+                <div class="expense-visual">
+                  <input id="debt-payments-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="debt-payments-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Discretionary Expenses Section -->
+          <!-- Helps highlight lifestyle spending so the recommendations can flag cutback opportunities -->
           <div class="budget-section">
             <h3>Discretionary Expenses</h3>
             <div class="expense-grid">
-              <div class="field">
-                <label for="dining-out">Dining Out & Entertainment</label>
-                <input id="dining-out" name="diningOut" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+              <div class="field expense-field">
+                <label for="dining-out-amount">Dining Out & Entertainment</label>
+                <input id="dining-out-amount" class="expense-input" name="diningOut" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+                <div class="expense-visual">
+                  <input id="dining-out-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="dining-out-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="shopping">Shopping & Personal Items</label>
-                <input id="shopping" name="shopping" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 150">
+              <div class="field expense-field">
+                <label for="shopping-amount">Shopping & Personal Items</label>
+                <input id="shopping-amount" class="expense-input" name="shopping" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 150">
+                <div class="expense-visual">
+                  <input id="shopping-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="shopping-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="subscriptions">Subscriptions & Memberships</label>
-                <input id="subscriptions" name="subscriptions" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 50">
+              <div class="field expense-field">
+                <label for="subscriptions-amount">Subscriptions & Memberships</label>
+                <input id="subscriptions-amount" class="expense-input" name="subscriptions" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 50">
+                <div class="expense-visual">
+                  <input id="subscriptions-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="subscriptions-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="miscellaneous">Miscellaneous</label>
-                <input id="miscellaneous" name="miscellaneous" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 100">
+              <div class="field expense-field">
+                <label for="miscellaneous-amount">Miscellaneous</label>
+                <input id="miscellaneous-amount" class="expense-input" name="miscellaneous" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 100">
+                <div class="expense-visual">
+                  <input id="miscellaneous-slider" class="expense-slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                  <div class="slider-meta">
+                    <span>Share of income</span>
+                    <span id="miscellaneous-display" class="slider-value">0% · $0</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -171,6 +294,7 @@
         </form>
 
         <!-- Budget Analysis Results Display -->
+        <!-- This container receives synthesized guidance (alerts + savings tips) generated in script.js -->
         <div id="budget-results" class="budget-results" aria-live="polite"></div>
       </div>
     </section>
@@ -249,4 +373,3 @@
   
 </body>
 </html>
-

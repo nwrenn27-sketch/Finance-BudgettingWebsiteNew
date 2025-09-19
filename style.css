@@ -248,6 +248,7 @@ body {
 }
 
 /* Budget results container */
+/* Space anticipates dynamic alerts and recommendation cards appended by the script */
 .budget-results {
   margin-top: 24px;
 }
@@ -416,4 +417,3 @@ body {
   .budget-grid { grid-template-columns: 1fr; }
   .budget-item { grid-column: span 1; }
 }
-

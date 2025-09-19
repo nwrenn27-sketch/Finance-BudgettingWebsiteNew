@@ -169,6 +169,7 @@ body {
    ============================================================================ */
 
 /* Tab content visibility control */
+/* Hidden by default; the active class is toggled from script.js when switching tabs */
 .tab-content {
   display: none;
 }
@@ -322,6 +323,99 @@ input:hover:not(:focus), select:hover:not(:focus) {
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
 }
 
+/* Slider specific styling */
+.slider-field {
+  padding-top: 6px;
+}
+
+.slider-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.slider-label label {
+  margin-bottom: 0;
+}
+
+.slider-value {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.slider-meta .slider-value {
+  color: var(--text);
+}
+
+input[type="range"] {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  height: 6px;
+  margin-bottom: 4px;
+  -webkit-appearance: none;
+  --range-progress: 0%;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"][disabled] {
+  cursor: default;
+  opacity: 0.9;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary) var(--range-progress), rgba(59,130,246,0.3) var(--range-progress), rgba(59,130,246,0.3) 100%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-700) 100%);
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 10px rgba(59,130,246,0.45);
+  margin-top: -6px;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary) var(--range-progress), rgba(59,130,246,0.3) var(--range-progress), rgba(59,130,246,0.3) 100%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-700) 100%);
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 10px rgba(59,130,246,0.45);
+}
+
+input[type="range"]::-moz-focus-outer {
+  border: 0;
+}
+
 /* Input prefix styling for currency symbols */
 .input-prefix { position: relative; }
 .input-prefix .prefix {
@@ -332,6 +426,84 @@ input:hover:not(:focus), select:hover:not(:focus) {
   color: var(--muted);
 }
 .input-prefix input { padding-left: 28px; }
+
+/* Budget overview summary */
+.budget-overview {
+  margin: 24px 0;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%),
+    var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.budget-overview h3 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.overview-item {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overview-item .label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.overview-item .value {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.income-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.income-amount {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%),
+    var(--surface);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.expense-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expense-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expense-slider {
+  pointer-events: none;
+}
 
 /* ============================================================================
    GRID LAYOUT & BUTTON STYLES
@@ -966,5 +1138,3 @@ label {
     gap: 0.5rem;
   }
 }
-
-
