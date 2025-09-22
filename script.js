@@ -1132,6 +1132,11 @@
       metricDebtEl.textContent = toCurrency(totalDebt);
       metricDebtEl.nextElementSibling.textContent = totalDebt > 0 ? 'Active debts' : 'Debt free!';
     }
+    if (metricInvestmentsEl) {
+      // For now, we don't track investment values, so show $0
+      metricInvestmentsEl.textContent = '$0';
+      metricInvestmentsEl.nextElementSibling.textContent = 'Not tracking';
+    }
 
     // Generate recommendations
     generateRecommendations(metrics);
@@ -1207,7 +1212,7 @@
         title: 'Start investing',
         description: 'You have a solid foundation. Consider exploring investment options.',
         priority: 'medium',
-        action: 'investments',
+        action: 'investment',
         actionText: 'Invest'
       });
     }
@@ -1737,6 +1742,7 @@
   window.deleteGoal = deleteGoal;
   window.editGoal = editGoal;
   window.removeDebtInput = removeDebtInput;
+  window.switchTab = switchTab;
 
   // ============================================================================
   // INVESTMENT FUNCTIONS
