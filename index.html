@@ -30,13 +30,107 @@
   <main class="container">
     <!-- Tab Navigation - Switch between Income Calculator and Budget Planner -->
     <div class="tab-navigation">
-      <button class="tab-btn active" data-tab="income">Income Calculator</button>
-      <button class="tab-btn" data-tab="budget">Budget Planner</button>
-      <button class="tab-btn" data-tab="investment">Safe Investments</button>
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="income">Income</button>
+      <button class="tab-btn" data-tab="budget">Budget</button>
+      <button class="tab-btn" data-tab="debt">Debt Payoff</button>
+      <button class="tab-btn" data-tab="emergency">Emergency Fund</button>
+      <button class="tab-btn" data-tab="goals">Goals</button>
+      <button class="tab-btn" data-tab="investment">Investments</button>
     </div>
 
+    <!-- Financial Health Dashboard Tab -->
+    <section class="tab-content active" id="dashboard-tab" aria-labelledby="dashboard-title">
+      <div class="card">
+        <h2 id="dashboard-title">Financial Health Dashboard</h2>
+        <p>Your complete financial overview and personalized recommendations.</p>
+
+        <!-- Financial Health Score -->
+        <div class="health-score-section">
+          <div class="score-circle">
+            <div class="score-value" id="health-score">--</div>
+            <div class="score-label">Financial Health Score</div>
+          </div>
+          <div class="score-breakdown" id="score-breakdown">
+            <p>Complete your financial information to get your personalized score.</p>
+          </div>
+        </div>
+
+        <!-- Key Metrics Overview -->
+        <div class="metrics-grid" id="dashboard-metrics">
+          <div class="metric-card">
+            <h4>Monthly Income</h4>
+            <div class="metric-value" id="metric-income">$0</div>
+            <div class="metric-status">Not calculated</div>
+          </div>
+          <div class="metric-card">
+            <h4>Monthly Expenses</h4>
+            <div class="metric-value" id="metric-expenses">$0</div>
+            <div class="metric-status">Not calculated</div>
+          </div>
+          <div class="metric-card">
+            <h4>Savings Rate</h4>
+            <div class="metric-value" id="metric-savings-rate">0%</div>
+            <div class="metric-status">Not calculated</div>
+          </div>
+          <div class="metric-card">
+            <h4>Emergency Fund</h4>
+            <div class="metric-value" id="metric-emergency">$0</div>
+            <div class="metric-status">Not set</div>
+          </div>
+          <div class="metric-card">
+            <h4>Total Debt</h4>
+            <div class="metric-value" id="metric-debt">$0</div>
+            <div class="metric-status">Not calculated</div>
+          </div>
+          <div class="metric-card">
+            <h4>Investment Value</h4>
+            <div class="metric-value" id="metric-investments">$0</div>
+            <div class="metric-status">Not set</div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="recommendations-section" id="dashboard-recommendations">
+          <h3>Personalized Recommendations</h3>
+          <div class="recommendation-list" id="recommendation-list">
+            <div class="recommendation-item priority-high">
+              <div class="rec-icon">📊</div>
+              <div class="rec-content">
+                <h4>Start by calculating your income</h4>
+                <p>Use the Income tab to determine your take-home pay and set up your financial foundation.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <h3>Quick Actions</h3>
+          <div class="action-buttons">
+            <button class="action-btn" onclick="switchTab('income')">
+              <span class="action-icon">💰</span>
+              Calculate Income
+            </button>
+            <button class="action-btn" onclick="switchTab('budget')">
+              <span class="action-icon">📋</span>
+              Plan Budget
+            </button>
+            <button class="action-btn" onclick="switchTab('goals')">
+              <span class="action-icon">🎯</span>
+              Set Goals
+            </button>
+            <button class="action-btn" onclick="switchTab('emergency')">
+              <span class="action-icon">🛡️</span>
+              Emergency Fund
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Income Calculator Tab -->
-    <section class="tab-content active" id="income-tab" aria-labelledby="calc-title">
+    <section class="tab-content" id="income-tab" aria-labelledby="calc-title">
       <div class="card">
         <h2 id="calc-title">Income Calculator</h2>
         
@@ -357,6 +451,163 @@
 
         <!-- API Status Display -->
         <div id="api-status" class="api-status" style="display: none;"></div>
+      </div>
+    </section>
+
+    <!-- Debt Payoff Calculator Tab -->
+    <section class="tab-content" id="debt-tab" aria-labelledby="debt-title">
+      <div class="card">
+        <h2 id="debt-title">Debt Payoff Calculator</h2>
+        <p>Compare debt payoff strategies and see how quickly you can become debt-free.</p>
+
+        <!-- Debt Input Section -->
+        <form id="debt-form" class="debt-form">
+          <div class="debt-section">
+            <h3>Your Debts</h3>
+            <div id="debt-list" class="debt-list">
+              <!-- Debt items will be added here -->
+            </div>
+            <button type="button" id="add-debt-btn" class="btn-secondary">+ Add Debt</button>
+          </div>
+
+          <div class="debt-section">
+            <h3>Payoff Strategy</h3>
+            <div class="strategy-grid">
+              <div class="field">
+                <label for="extra-payment">Extra Monthly Payment</label>
+                <input id="extra-payment" name="extraPayment" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 200">
+              </div>
+              <div class="field">
+                <label for="payoff-strategy">Strategy</label>
+                <select id="payoff-strategy" name="payoffStrategy">
+                  <option value="avalanche">Debt Avalanche (Highest Interest First)</option>
+                  <option value="snowball">Debt Snowball (Smallest Balance First)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">Calculate Payoff Plan</button>
+            <button type="button" id="debt-reset-btn" class="btn-secondary">Reset</button>
+          </div>
+        </form>
+
+        <!-- Debt Results Display -->
+        <div id="debt-results" class="debt-results" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Emergency Fund Calculator Tab -->
+    <section class="tab-content" id="emergency-tab" aria-labelledby="emergency-title">
+      <div class="card">
+        <h2 id="emergency-title">Emergency Fund Calculator</h2>
+        <p>Build your financial safety net with a personalized emergency fund target.</p>
+
+        <!-- Emergency Fund Form -->
+        <form id="emergency-form" class="emergency-form">
+          <div class="emergency-section">
+            <h3>Monthly Expenses</h3>
+            <div class="expense-grid">
+              <div class="field">
+                <label for="emergency-expenses">Total Monthly Essential Expenses</label>
+                <input id="emergency-expenses" name="emergencyExpenses" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 3500" required>
+                <small>Include rent, utilities, groceries, insurance, debt payments, etc.</small>
+              </div>
+              <div class="field">
+                <label for="emergency-months">Target Coverage (Months)</label>
+                <select id="emergency-months" name="emergencyMonths" required>
+                  <option value="3">3 months (Minimum recommended)</option>
+                  <option value="6" selected>6 months (Standard recommendation)</option>
+                  <option value="9">9 months (High stability job)</option>
+                  <option value="12">12 months (Variable income/Self-employed)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="emergency-section">
+            <h3>Current Emergency Fund</h3>
+            <div class="field">
+              <label for="current-emergency">Current Emergency Fund Balance</label>
+              <input id="current-emergency" name="currentEmergency" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 1500">
+            </div>
+          </div>
+
+          <div class="emergency-section">
+            <h3>Savings Plan</h3>
+            <div class="field">
+              <label for="monthly-contribution">Monthly Contribution to Emergency Fund</label>
+              <input id="monthly-contribution" name="monthlyContribution" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 300">
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">Calculate Emergency Fund Plan</button>
+            <button type="button" id="emergency-reset-btn" class="btn-secondary">Reset</button>
+          </div>
+        </form>
+
+        <!-- Emergency Fund Results -->
+        <div id="emergency-results" class="emergency-results" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Goals Tracker Tab -->
+    <section class="tab-content" id="goals-tab" aria-labelledby="goals-title">
+      <div class="card">
+        <h2 id="goals-title">Financial Goals Tracker</h2>
+        <p>Set and track your financial goals with personalized timelines and progress visualization.</p>
+
+        <!-- Add Goal Section -->
+        <div class="goals-section">
+          <h3>Add New Goal</h3>
+          <form id="goals-form" class="goals-form">
+            <div class="goal-input-grid">
+              <div class="field">
+                <label for="goal-name">Goal Name</label>
+                <input id="goal-name" name="goalName" type="text" placeholder="e.g., House Down Payment" required>
+              </div>
+              <div class="field">
+                <label for="goal-amount">Target Amount</label>
+                <input id="goal-amount" name="goalAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 50000" required>
+              </div>
+              <div class="field">
+                <label for="goal-current">Current Savings</label>
+                <input id="goal-current" name="goalCurrent" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 5000">
+              </div>
+              <div class="field">
+                <label for="goal-monthly">Monthly Contribution</label>
+                <input id="goal-monthly" name="goalMonthly" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 800">
+              </div>
+              <div class="field">
+                <label for="goal-deadline">Target Date (Optional)</label>
+                <input id="goal-deadline" name="goalDeadline" type="date">
+              </div>
+              <div class="field">
+                <label for="goal-priority">Priority</label>
+                <select id="goal-priority" name="goalPriority">
+                  <option value="high">High</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn-primary">Add Goal</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Goals List -->
+        <div class="goals-section">
+          <h3>Your Goals</h3>
+          <div id="goals-list" class="goals-list">
+            <div class="no-goals-message">
+              <p>No goals set yet. Add your first financial goal above!</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>

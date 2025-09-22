@@ -60,6 +60,34 @@
   });
 
   const summaryRemainingEl = document.getElementById('summary-remaining');
+
+  // Dashboard elements
+  const healthScoreEl = document.getElementById('health-score');
+  const scoreBreakdownEl = document.getElementById('score-breakdown');
+  const metricIncomeEl = document.getElementById('metric-income');
+  const metricExpensesEl = document.getElementById('metric-expenses');
+  const metricSavingsRateEl = document.getElementById('metric-savings-rate');
+  const metricEmergencyEl = document.getElementById('metric-emergency');
+  const metricDebtEl = document.getElementById('metric-debt');
+  const metricInvestmentsEl = document.getElementById('metric-investments');
+  const recommendationListEl = document.getElementById('recommendation-list');
+
+  // Debt form elements
+  const debtForm = document.getElementById('debt-form');
+  const debtListEl = document.getElementById('debt-list');
+  const addDebtBtn = document.getElementById('add-debt-btn');
+  const debtResetBtn = document.getElementById('debt-reset-btn');
+  const debtResultsEl = document.getElementById('debt-results');
+
+  // Emergency fund elements
+  const emergencyForm = document.getElementById('emergency-form');
+  const emergencyResetBtn = document.getElementById('emergency-reset-btn');
+  const emergencyResultsEl = document.getElementById('emergency-results');
+
+  // Goals form elements
+  const goalsForm = document.getElementById('goals-form');
+  const goalsListEl = document.getElementById('goals-list');
+
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -495,6 +523,9 @@
     if (monthlyIncomeInput) {
       applyMonthlyIncomeAutoFill(monthlyNetIncome);
     }
+
+    // Save income to localStorage for dashboard
+    saveToLocalStorage('monthlyIncome', monthlyNetIncome);
 
     const content = `
       <div class="income-summary">
@@ -941,11 +972,16 @@
     // Perform budget analysis and generate recommendations
     const analysis = calculateBudgetAnalysis(monthlyIncome, expenses);
     analysis.income = monthlyIncome; // Persist income on the analysis object for downstream render helpers
-    
+
     const savingsRecommendations = generateSavingsRecommendations(analysis);
     const expenseRecommendations = generateExpenseRecommendations(expenses, monthlyIncome);
-    
+
+    // Save budget data for dashboard
+    const totalExpenses = Object.values(expenses).reduce((sum, expense) => sum + expense, 0);
+    saveToLocalStorage('monthlyExpenses', totalExpenses);
+
     renderBudgetResults(analysis, savingsRecommendations, expenseRecommendations);
+    updateDashboard();
   }
 
   /**
@@ -962,6 +998,728 @@
     }
     updateAllExpenseVisuals();
   }
+
+  // ============================================================================
+  // DATA PERSISTENCE FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Saves data to localStorage
+   * @param {string} key - Storage key
+   * @param {any} data - Data to save
+   */
+  function saveToLocalStorage(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.warn('Failed to save to localStorage:', error);
+    }
+  }
+
+  /**
+   * Loads data from localStorage
+   * @param {string} key - Storage key
+   * @param {any} defaultValue - Default value if not found
+   * @returns {any} Loaded data or default value
+   */
+  function loadFromLocalStorage(key, defaultValue = null) {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+      console.warn('Failed to load from localStorage:', error);
+      return defaultValue;
+    }
+  }
+
+  // ============================================================================
+  // DASHBOARD FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Calculates financial health score based on various metrics
+   * @param {object} metrics - Financial metrics
+   * @returns {number} Health score (0-100)
+   */
+  function calculateHealthScore(metrics) {
+    let score = 0;
+    let factors = 0;
+
+    // Income factor (20 points)
+    if (metrics.monthlyIncome > 0) {
+      score += 20;
+      factors++;
+    }
+
+    // Savings rate factor (25 points)
+    if (metrics.savingsRate >= 20) score += 25;
+    else if (metrics.savingsRate >= 15) score += 20;
+    else if (metrics.savingsRate >= 10) score += 15;
+    else if (metrics.savingsRate >= 5) score += 10;
+    factors++;
+
+    // Emergency fund factor (25 points)
+    if (metrics.emergencyFundMonths >= 6) score += 25;
+    else if (metrics.emergencyFundMonths >= 3) score += 15;
+    else if (metrics.emergencyFundMonths >= 1) score += 10;
+    factors++;
+
+    // Debt factor (20 points)
+    if (metrics.debtToIncomeRatio === 0) score += 20;
+    else if (metrics.debtToIncomeRatio <= 0.2) score += 15;
+    else if (metrics.debtToIncomeRatio <= 0.36) score += 10;
+    else if (metrics.debtToIncomeRatio <= 0.5) score += 5;
+    factors++;
+
+    // Investment factor (10 points)
+    if (metrics.hasInvestments) score += 10;
+    factors++;
+
+    return Math.round(score);
+  }
+
+  /**
+   * Updates dashboard with current financial data
+   */
+  function updateDashboard() {
+    const savedData = {
+      income: loadFromLocalStorage('monthlyIncome', 0),
+      expenses: loadFromLocalStorage('monthlyExpenses', 0),
+      emergencyFund: loadFromLocalStorage('emergencyFund', 0),
+      debts: loadFromLocalStorage('debts', []),
+      goals: loadFromLocalStorage('goals', [])
+    };
+
+    const monthlyIncome = savedData.income;
+    const monthlyExpenses = savedData.expenses;
+    const savingsAmount = monthlyIncome - monthlyExpenses;
+    const savingsRate = monthlyIncome > 0 ? (savingsAmount / monthlyIncome) * 100 : 0;
+    const totalDebt = savedData.debts.reduce((sum, debt) => sum + debt.balance, 0);
+    const debtToIncomeRatio = monthlyIncome > 0 ? totalDebt / (monthlyIncome * 12) : 0;
+    const emergencyFundMonths = monthlyExpenses > 0 ? savedData.emergencyFund / monthlyExpenses : 0;
+
+    const metrics = {
+      monthlyIncome,
+      monthlyExpenses,
+      savingsRate,
+      emergencyFundMonths,
+      debtToIncomeRatio,
+      hasInvestments: false // Could be enhanced to track investments
+    };
+
+    // Update health score
+    const healthScore = calculateHealthScore(metrics);
+    if (healthScoreEl) healthScoreEl.textContent = healthScore;
+
+    // Update metric cards
+    if (metricIncomeEl) {
+      metricIncomeEl.textContent = toCurrency(monthlyIncome);
+      metricIncomeEl.nextElementSibling.textContent = monthlyIncome > 0 ? 'Calculated' : 'Not calculated';
+    }
+    if (metricExpensesEl) {
+      metricExpensesEl.textContent = toCurrency(monthlyExpenses);
+      metricExpensesEl.nextElementSibling.textContent = monthlyExpenses > 0 ? 'Calculated' : 'Not calculated';
+    }
+    if (metricSavingsRateEl) {
+      metricSavingsRateEl.textContent = savingsRate.toFixed(1) + '%';
+      metricSavingsRateEl.nextElementSibling.textContent = monthlyIncome > 0 ? 'Calculated' : 'Not calculated';
+    }
+    if (metricEmergencyEl) {
+      metricEmergencyEl.textContent = toCurrency(savedData.emergencyFund);
+      metricEmergencyEl.nextElementSibling.textContent = savedData.emergencyFund > 0 ? 'On track' : 'Not set';
+    }
+    if (metricDebtEl) {
+      metricDebtEl.textContent = toCurrency(totalDebt);
+      metricDebtEl.nextElementSibling.textContent = totalDebt > 0 ? 'Active debts' : 'Debt free!';
+    }
+
+    // Generate recommendations
+    generateRecommendations(metrics);
+  }
+
+  /**
+   * Generates personalized recommendations based on financial health
+   * @param {object} metrics - Financial metrics
+   */
+  function generateRecommendations(metrics) {
+    if (!recommendationListEl) return;
+
+    const recommendations = [];
+
+    if (metrics.monthlyIncome === 0) {
+      recommendations.push({
+        icon: '💰',
+        title: 'Calculate your income',
+        description: 'Start by determining your monthly take-home pay in the Income tab.',
+        priority: 'high'
+      });
+    }
+
+    if (metrics.monthlyExpenses === 0 && metrics.monthlyIncome > 0) {
+      recommendations.push({
+        icon: '📋',
+        title: 'Plan your budget',
+        description: 'Track your monthly expenses to understand your spending patterns.',
+        priority: 'high'
+      });
+    }
+
+    if (metrics.emergencyFundMonths < 3 && metrics.monthlyIncome > 0) {
+      recommendations.push({
+        icon: '🛡️',
+        title: 'Build emergency fund',
+        description: 'Aim for 3-6 months of expenses in an emergency fund for financial security.',
+        priority: 'high'
+      });
+    }
+
+    if (metrics.savingsRate < 10 && metrics.monthlyIncome > 0) {
+      recommendations.push({
+        icon: '💸',
+        title: 'Increase savings rate',
+        description: 'Try to save at least 10-20% of your income for long-term financial health.',
+        priority: 'medium'
+      });
+    }
+
+    if (metrics.debtToIncomeRatio > 0.36) {
+      recommendations.push({
+        icon: '💳',
+        title: 'Focus on debt payoff',
+        description: 'Your debt-to-income ratio is high. Consider using the Debt Payoff tool.',
+        priority: 'high'
+      });
+    }
+
+    if (metrics.savingsRate >= 15 && metrics.emergencyFundMonths >= 3 && !metrics.hasInvestments) {
+      recommendations.push({
+        icon: '📈',
+        title: 'Start investing',
+        description: 'You have a solid foundation. Consider exploring investment options.',
+        priority: 'medium'
+      });
+    }
+
+    // Default recommendation if everything looks good
+    if (recommendations.length === 0) {
+      recommendations.push({
+        icon: '🎯',
+        title: 'Set financial goals',
+        description: 'Your finances look healthy! Consider setting long-term financial goals.',
+        priority: 'low'
+      });
+    }
+
+    const html = recommendations.map(rec => `
+      <div class="recommendation-item priority-${rec.priority}">
+        <div class="rec-icon">${rec.icon}</div>
+        <div class="rec-content">
+          <h4>${rec.title}</h4>
+          <p>${rec.description}</p>
+        </div>
+      </div>
+    `).join('');
+
+    recommendationListEl.innerHTML = html;
+  }
+
+  // ============================================================================
+  // DEBT PAYOFF FUNCTIONS
+  // ============================================================================
+
+  let debtCounter = 0;
+  let debts = [];
+
+  /**
+   * Adds a new debt input to the form
+   */
+  function addDebtInput() {
+    debtCounter++;
+    const debtItem = document.createElement('div');
+    debtItem.className = 'debt-item';
+    debtItem.innerHTML = `
+      <input type="text" placeholder="Debt name (e.g., Credit Card)" data-field="name" required>
+      <input type="number" placeholder="Balance" data-field="balance" step="0.01" min="0" required>
+      <input type="number" placeholder="Interest Rate (%)" data-field="rate" step="0.01" min="0" required>
+      <input type="number" placeholder="Min Payment" data-field="payment" step="0.01" min="0" required>
+      <button type="button" class="remove-debt-btn" onclick="removeDebtInput(this)">×</button>
+    `;
+    debtListEl.appendChild(debtItem);
+  }
+
+  /**
+   * Removes a debt input from the form
+   * @param {HTMLElement} button - Remove button element
+   */
+  function removeDebtInput(button) {
+    button.parentElement.remove();
+  }
+
+  /**
+   * Collects debt data from form inputs
+   * @returns {Array} Array of debt objects
+   */
+  function collectDebtData() {
+    const debtItems = debtListEl.querySelectorAll('.debt-item');
+    const debts = [];
+
+    debtItems.forEach(item => {
+      const inputs = item.querySelectorAll('input[data-field]');
+      const debt = {};
+      let valid = true;
+
+      inputs.forEach(input => {
+        const field = input.dataset.field;
+        const value = input.value.trim();
+
+        if (!value) {
+          valid = false;
+          return;
+        }
+
+        if (field === 'name') {
+          debt[field] = value;
+        } else {
+          debt[field] = parseFloat(value);
+        }
+      });
+
+      if (valid) {
+        debts.push(debt);
+      }
+    });
+
+    return debts;
+  }
+
+  /**
+   * Calculates debt payoff using avalanche method (highest interest first)
+   * @param {Array} debts - Array of debt objects
+   * @param {number} extraPayment - Extra monthly payment
+   * @returns {object} Payoff plan
+   */
+  function calculateAvalanche(debts, extraPayment) {
+    const sortedDebts = [...debts].sort((a, b) => b.rate - a.rate);
+    return calculatePayoffPlan(sortedDebts, extraPayment, 'Debt Avalanche');
+  }
+
+  /**
+   * Calculates debt payoff using snowball method (smallest balance first)
+   * @param {Array} debts - Array of debt objects
+   * @param {number} extraPayment - Extra monthly payment
+   * @returns {object} Payoff plan
+   */
+  function calculateSnowball(debts, extraPayment) {
+    const sortedDebts = [...debts].sort((a, b) => a.balance - b.balance);
+    return calculatePayoffPlan(sortedDebts, extraPayment, 'Debt Snowball');
+  }
+
+  /**
+   * Calculates detailed payoff plan for debts
+   * @param {Array} sortedDebts - Debts sorted by strategy
+   * @param {number} extraPayment - Extra monthly payment
+   * @param {string} strategyName - Name of the strategy
+   * @returns {object} Detailed payoff plan
+   */
+  function calculatePayoffPlan(sortedDebts, extraPayment, strategyName) {
+    let remainingDebts = sortedDebts.map(debt => ({...debt}));
+    let totalPaid = 0;
+    let totalInterest = 0;
+    let month = 0;
+    const timeline = [];
+
+    while (remainingDebts.length > 0 && month < 600) { // 50 year max
+      month++;
+      let monthlyExtra = extraPayment;
+
+      // Pay minimums on all debts first
+      remainingDebts.forEach(debt => {
+        const interestPayment = (debt.balance * (debt.rate / 100)) / 12;
+        const principalPayment = Math.min(debt.payment - interestPayment, debt.balance);
+
+        debt.balance -= principalPayment;
+        totalPaid += debt.payment;
+        totalInterest += interestPayment;
+      });
+
+      // Apply extra payment to priority debt
+      if (monthlyExtra > 0 && remainingDebts.length > 0) {
+        const priorityDebt = remainingDebts[0];
+        const extraApplied = Math.min(monthlyExtra, priorityDebt.balance);
+        priorityDebt.balance -= extraApplied;
+        totalPaid += extraApplied;
+      }
+
+      // Remove paid off debts
+      const paidOff = remainingDebts.filter(debt => debt.balance <= 0);
+      paidOff.forEach(debt => {
+        timeline.push({
+          month,
+          debtName: debt.name,
+          type: 'payoff'
+        });
+      });
+
+      remainingDebts = remainingDebts.filter(debt => debt.balance > 0);
+    }
+
+    return {
+      strategy: strategyName,
+      totalMonths: month,
+      totalPaid,
+      totalInterest,
+      timeline,
+      monthlySavings: extraPayment > 0 ? extraPayment : 0
+    };
+  }
+
+  /**
+   * Handles debt form submission
+   * @param {Event} event - Form submit event
+   */
+  function onDebtSubmit(event) {
+    event.preventDefault();
+
+    const debts = collectDebtData();
+    const extraPayment = sanitizeNumber(document.getElementById('extra-payment').value) || 0;
+    const strategy = document.getElementById('payoff-strategy').value;
+
+    if (debts.length === 0) {
+      debtResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please add at least one debt.</p></div>';
+      return;
+    }
+
+    // Save debts to localStorage
+    saveToLocalStorage('debts', debts);
+
+    const avalanchePlan = calculateAvalanche(debts, extraPayment);
+    const snowballPlan = calculateSnowball(debts, extraPayment);
+    const selectedPlan = strategy === 'avalanche' ? avalanchePlan : snowballPlan;
+    const alternativePlan = strategy === 'avalanche' ? snowballPlan : avalanchePlan;
+
+    displayDebtResults(selectedPlan, alternativePlan, debts);
+    updateDashboard();
+  }
+
+  /**
+   * Displays debt payoff results
+   * @param {object} selectedPlan - Primary payoff plan
+   * @param {object} alternativePlan - Alternative payoff plan
+   * @param {Array} debts - Original debt data
+   */
+  function displayDebtResults(selectedPlan, alternativePlan, debts) {
+    const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
+    const minPayments = debts.reduce((sum, debt) => sum + debt.payment, 0);
+
+    const html = `
+      <div class="payoff-summary">
+        <h3>${selectedPlan.strategy} Results</h3>
+        <div class="overview-grid">
+          <div class="overview-item">
+            <span class="label">Time to Pay Off</span>
+            <span class="value">${Math.floor(selectedPlan.totalMonths / 12)} years, ${selectedPlan.totalMonths % 12} months</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Total Interest Paid</span>
+            <span class="value">${toCurrency(selectedPlan.totalInterest)}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Total Amount Paid</span>
+            <span class="value">${toCurrency(selectedPlan.totalPaid)}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Monthly Payment</span>
+            <span class="value">${toCurrency(minPayments + selectedPlan.monthlySavings)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="strategy-comparison">
+        <h3>Strategy Comparison</h3>
+        <div class="comparison-grid">
+          <div class="comparison-item">
+            <h4>Debt Avalanche</h4>
+            <p>Payoff time: ${Math.floor(avalanchePlan.totalMonths / 12)}y ${avalanchePlan.totalMonths % 12}m</p>
+            <p>Interest paid: ${toCurrency(avalanchePlan.totalInterest)}</p>
+          </div>
+          <div class="comparison-item">
+            <h4>Debt Snowball</h4>
+            <p>Payoff time: ${Math.floor(snowballPlan.totalMonths / 12)}y ${snowballPlan.totalMonths % 12}m</p>
+            <p>Interest paid: ${toCurrency(snowballPlan.totalInterest)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="debt-tips">
+        <h4>Tips for Success:</h4>
+        <ul>
+          <li>Make payments on time to avoid late fees</li>
+          <li>Consider balance transfers for high-interest credit cards</li>
+          <li>Avoid taking on new debt during payoff</li>
+          <li>Celebrate milestones to stay motivated</li>
+        </ul>
+      </div>
+    `;
+
+    debtResultsEl.innerHTML = html;
+  }
+
+  /**
+   * Resets debt form
+   */
+  function onDebtReset() {
+    debtForm.reset();
+    debtListEl.innerHTML = '';
+    debtResultsEl.innerHTML = '';
+    debtCounter = 0;
+  }
+
+  // ============================================================================
+  // EMERGENCY FUND FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Handles emergency fund form submission
+   * @param {Event} event - Form submit event
+   */
+  function onEmergencySubmit(event) {
+    event.preventDefault();
+
+    const formData = new FormData(emergencyForm);
+    const monthlyExpenses = sanitizeNumber(formData.get('emergencyExpenses'));
+    const targetMonths = parseInt(formData.get('emergencyMonths'));
+    const currentFund = sanitizeNumber(formData.get('currentEmergency')) || 0;
+    const monthlyContribution = sanitizeNumber(formData.get('monthlyContribution')) || 0;
+
+    if (monthlyExpenses <= 0) {
+      emergencyResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please enter valid monthly expenses.</p></div>';
+      return;
+    }
+
+    const targetAmount = monthlyExpenses * targetMonths;
+    const remainingAmount = Math.max(0, targetAmount - currentFund);
+    const progressPercent = Math.min(100, (currentFund / targetAmount) * 100);
+
+    let monthsToGoal = 0;
+    if (remainingAmount > 0 && monthlyContribution > 0) {
+      monthsToGoal = Math.ceil(remainingAmount / monthlyContribution);
+    }
+
+    // Save to localStorage
+    saveToLocalStorage('emergencyFund', currentFund);
+    saveToLocalStorage('monthlyExpenses', monthlyExpenses);
+
+    displayEmergencyResults(targetAmount, currentFund, remainingAmount, progressPercent, monthsToGoal, monthlyContribution);
+    updateDashboard();
+  }
+
+  /**
+   * Displays emergency fund results
+   */
+  function displayEmergencyResults(targetAmount, currentFund, remainingAmount, progressPercent, monthsToGoal, monthlyContribution) {
+    const html = `
+      <div class="emergency-progress">
+        <h3>Emergency Fund Progress</h3>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progressPercent}%">
+            <span class="progress-text">${progressPercent.toFixed(1)}%</span>
+          </div>
+        </div>
+        <div class="overview-grid">
+          <div class="overview-item">
+            <span class="label">Target Amount</span>
+            <span class="value">${toCurrency(targetAmount)}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Current Amount</span>
+            <span class="value">${toCurrency(currentFund)}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Remaining Needed</span>
+            <span class="value">${toCurrency(remainingAmount)}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Time to Goal</span>
+            <span class="value">${monthsToGoal > 0 ? `${Math.floor(monthsToGoal / 12)} years, ${monthsToGoal % 12} months` : 'Goal reached!'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="emergency-tips">
+        <h4>Emergency Fund Tips:</h4>
+        <ul>
+          <li>Keep emergency funds in a high-yield savings account</li>
+          <li>Only use for true emergencies (job loss, medical bills, major repairs)</li>
+          <li>Replenish immediately after using</li>
+          <li>Consider increasing to 9-12 months if you're self-employed</li>
+        </ul>
+      </div>
+    `;
+
+    emergencyResultsEl.innerHTML = html;
+  }
+
+  /**
+   * Resets emergency fund form
+   */
+  function onEmergencyReset() {
+    emergencyForm.reset();
+    emergencyResultsEl.innerHTML = '';
+  }
+
+  // ============================================================================
+  // GOALS TRACKING FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Handles goals form submission
+   * @param {Event} event - Form submit event
+   */
+  function onGoalsSubmit(event) {
+    event.preventDefault();
+
+    const formData = new FormData(goalsForm);
+    const goal = {
+      id: Date.now(),
+      name: formData.get('goalName'),
+      targetAmount: sanitizeNumber(formData.get('goalAmount')),
+      currentAmount: sanitizeNumber(formData.get('goalCurrent')) || 0,
+      monthlyContribution: sanitizeNumber(formData.get('goalMonthly')) || 0,
+      deadline: formData.get('goalDeadline') || null,
+      priority: formData.get('goalPriority'),
+      created: new Date().toISOString()
+    };
+
+    if (!goal.name || goal.targetAmount <= 0) {
+      alert('Please enter a valid goal name and target amount.');
+      return;
+    }
+
+    const goals = loadFromLocalStorage('goals', []);
+    goals.push(goal);
+    saveToLocalStorage('goals', goals);
+
+    goalsForm.reset();
+    displayGoals();
+    updateDashboard();
+  }
+
+  /**
+   * Displays all goals
+   */
+  function displayGoals() {
+    const goals = loadFromLocalStorage('goals', []);
+
+    if (goals.length === 0) {
+      goalsListEl.innerHTML = '<div class="no-goals-message"><p>No goals set yet. Add your first financial goal above!</p></div>';
+      return;
+    }
+
+    const html = goals.map(goal => {
+      const progressPercent = Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
+      const remainingAmount = Math.max(0, goal.targetAmount - goal.currentAmount);
+
+      let monthsToGoal = 0;
+      if (remainingAmount > 0 && goal.monthlyContribution > 0) {
+        monthsToGoal = Math.ceil(remainingAmount / goal.monthlyContribution);
+      }
+
+      const deadlineDate = goal.deadline ? new Date(goal.deadline) : null;
+      const monthsUntilDeadline = deadlineDate ? Math.max(0, Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24 * 30))) : null;
+
+      return `
+        <div class="goal-item">
+          <div class="goal-header">
+            <h3 class="goal-name">${goal.name}</h3>
+            <span class="goal-priority ${goal.priority}">${goal.priority}</span>
+          </div>
+
+          <div class="goal-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progressPercent}%">
+                <span class="progress-text">${progressPercent.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="goal-stats">
+            <div class="goal-stat">
+              <div class="goal-stat-label">Target</div>
+              <div class="goal-stat-value">${toCurrency(goal.targetAmount)}</div>
+            </div>
+            <div class="goal-stat">
+              <div class="goal-stat-label">Current</div>
+              <div class="goal-stat-value">${toCurrency(goal.currentAmount)}</div>
+            </div>
+            <div class="goal-stat">
+              <div class="goal-stat-label">Remaining</div>
+              <div class="goal-stat-value">${toCurrency(remainingAmount)}</div>
+            </div>
+            <div class="goal-stat">
+              <div class="goal-stat-label">Time to Goal</div>
+              <div class="goal-stat-value">${monthsToGoal > 0 ? `${Math.floor(monthsToGoal / 12)}y ${monthsToGoal % 12}m` : 'Achieved!'}</div>
+            </div>
+            ${deadlineDate ? `
+              <div class="goal-stat">
+                <div class="goal-stat-label">Deadline</div>
+                <div class="goal-stat-value">${deadlineDate.toLocaleDateString()}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="goal-actions">
+            <button class="goal-action-btn" onclick="editGoal(${goal.id})">Edit</button>
+            <button class="goal-action-btn delete" onclick="deleteGoal(${goal.id})">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    goalsListEl.innerHTML = html;
+  }
+
+  /**
+   * Deletes a goal
+   * @param {number} goalId - Goal ID to delete
+   */
+  function deleteGoal(goalId) {
+    if (!confirm('Are you sure you want to delete this goal?')) return;
+
+    const goals = loadFromLocalStorage('goals', []);
+    const updatedGoals = goals.filter(goal => goal.id !== goalId);
+    saveToLocalStorage('goals', updatedGoals);
+    displayGoals();
+    updateDashboard();
+  }
+
+  /**
+   * Edits a goal (simplified version - could be enhanced with modal)
+   * @param {number} goalId - Goal ID to edit
+   */
+  function editGoal(goalId) {
+    const goals = loadFromLocalStorage('goals', []);
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    const newCurrent = prompt(`Update current amount for "${goal.name}":`, goal.currentAmount);
+    if (newCurrent === null) return;
+
+    const newAmount = sanitizeNumber(newCurrent);
+    if (isNaN(newAmount) || newAmount < 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+
+    goal.currentAmount = newAmount;
+    saveToLocalStorage('goals', goals);
+    displayGoals();
+    updateDashboard();
+  }
+
+  // Make functions globally available for onclick handlers
+  window.deleteGoal = deleteGoal;
+  window.editGoal = editGoal;
+  window.removeDebtInput = removeDebtInput;
 
   // ============================================================================
   // INVESTMENT FUNCTIONS
@@ -1249,6 +2007,18 @@
   investmentForm.addEventListener('submit', onInvestmentSubmit);
   investmentResetBtn.addEventListener('click', onInvestmentReset);
 
+  // Debt form event listeners
+  debtForm.addEventListener('submit', onDebtSubmit);
+  debtResetBtn.addEventListener('click', onDebtReset);
+  addDebtBtn.addEventListener('click', addDebtInput);
+
+  // Emergency fund event listeners
+  emergencyForm.addEventListener('submit', onEmergencySubmit);
+  emergencyResetBtn.addEventListener('click', onEmergencyReset);
+
+  // Goals form event listeners
+  goalsForm.addEventListener('submit', onGoalsSubmit);
+
   expenseFieldConfig.forEach(config => {
     if (config.amountEl) {
       config.amountEl.addEventListener('input', updateAllExpenseVisuals);
@@ -1256,6 +2026,10 @@
   });
 
   updateAllExpenseVisuals();
+
+  // Initialize dashboard and goals display
+  updateDashboard();
+  displayGoals();
 
   // Tab navigation event listeners
   tabBtns.forEach(btn => {
