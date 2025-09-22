@@ -1151,7 +1151,9 @@
         icon: '💰',
         title: 'Calculate your income',
         description: 'Start by determining your monthly take-home pay in the Income tab.',
-        priority: 'high'
+        priority: 'high',
+        action: 'income',
+        actionText: 'Start'
       });
     }
 
@@ -1160,7 +1162,9 @@
         icon: '📋',
         title: 'Plan your budget',
         description: 'Track your monthly expenses to understand your spending patterns.',
-        priority: 'high'
+        priority: 'high',
+        action: 'budget',
+        actionText: 'Plan'
       });
     }
 
@@ -1169,7 +1173,9 @@
         icon: '🛡️',
         title: 'Build emergency fund',
         description: 'Aim for 3-6 months of expenses in an emergency fund for financial security.',
-        priority: 'high'
+        priority: 'high',
+        action: 'emergency',
+        actionText: 'Build'
       });
     }
 
@@ -1178,7 +1184,9 @@
         icon: '💸',
         title: 'Increase savings rate',
         description: 'Try to save at least 10-20% of your income for long-term financial health.',
-        priority: 'medium'
+        priority: 'medium',
+        action: 'budget',
+        actionText: 'Optimize'
       });
     }
 
@@ -1187,7 +1195,9 @@
         icon: '💳',
         title: 'Focus on debt payoff',
         description: 'Your debt-to-income ratio is high. Consider using the Debt Payoff tool.',
-        priority: 'high'
+        priority: 'high',
+        action: 'debt',
+        actionText: 'Payoff'
       });
     }
 
@@ -1196,7 +1206,9 @@
         icon: '📈',
         title: 'Start investing',
         description: 'You have a solid foundation. Consider exploring investment options.',
-        priority: 'medium'
+        priority: 'medium',
+        action: 'investments',
+        actionText: 'Invest'
       });
     }
 
@@ -1206,7 +1218,9 @@
         icon: '🎯',
         title: 'Set financial goals',
         description: 'Your finances look healthy! Consider setting long-term financial goals.',
-        priority: 'low'
+        priority: 'low',
+        action: 'goals',
+        actionText: 'Set Goals'
       });
     }
 
@@ -1216,6 +1230,9 @@
         <div class="rec-content">
           <h4>${rec.title}</h4>
           <p>${rec.description}</p>
+        </div>
+        <div class="rec-action">
+          <button class="rec-btn" onclick="switchTab('${rec.action}')">${rec.actionText}</button>
         </div>
       </div>
     `).join('');

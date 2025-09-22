@@ -41,58 +41,93 @@
 
     <!-- Financial Health Dashboard Tab -->
     <section class="tab-content active" id="dashboard-tab" aria-labelledby="dashboard-title">
-      <div class="card">
-        <h2 id="dashboard-title">Financial Health Dashboard</h2>
-        <p>Your complete financial overview and personalized recommendations.</p>
-
-        <!-- Financial Health Score -->
-        <div class="health-score-section">
-          <div class="score-circle">
-            <div class="score-value" id="health-score">--</div>
-            <div class="score-label">Financial Health Score</div>
+      <!-- Dashboard Header -->
+      <div class="dashboard-header">
+        <div class="header-content">
+          <h1 id="dashboard-title">Financial Health Dashboard</h1>
+          <p class="header-subtitle">Your complete financial overview and personalized guidance</p>
+        </div>
+        <div class="health-score-container">
+          <div class="score-circle-wrapper">
+            <div class="score-circle">
+              <div class="score-inner">
+                <div class="score-value" id="health-score">--</div>
+                <div class="score-label">Health Score</div>
+              </div>
+            </div>
           </div>
-          <div class="score-breakdown" id="score-breakdown">
-            <p>Complete your financial information to get your personalized score.</p>
+          <div class="score-status" id="score-breakdown">
+            <p>Complete your financial information to get your personalized score</p>
           </div>
         </div>
+      </div>
 
-        <!-- Key Metrics Overview -->
+      <!-- Key Metrics Overview -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <h3>Financial Overview</h3>
+          <span class="section-subtitle">Key metrics at a glance</span>
+        </div>
         <div class="metrics-grid" id="dashboard-metrics">
-          <div class="metric-card">
-            <h4>Monthly Income</h4>
-            <div class="metric-value" id="metric-income">$0</div>
-            <div class="metric-status">Not calculated</div>
+          <div class="metric-card income">
+            <div class="metric-icon">💰</div>
+            <div class="metric-content">
+              <div class="metric-label">Monthly Income</div>
+              <div class="metric-value" id="metric-income">$0</div>
+              <div class="metric-status">Not calculated</div>
+            </div>
           </div>
-          <div class="metric-card">
-            <h4>Monthly Expenses</h4>
-            <div class="metric-value" id="metric-expenses">$0</div>
-            <div class="metric-status">Not calculated</div>
+          <div class="metric-card expenses">
+            <div class="metric-icon">💸</div>
+            <div class="metric-content">
+              <div class="metric-label">Monthly Expenses</div>
+              <div class="metric-value" id="metric-expenses">$0</div>
+              <div class="metric-status">Not calculated</div>
+            </div>
           </div>
-          <div class="metric-card">
-            <h4>Savings Rate</h4>
-            <div class="metric-value" id="metric-savings-rate">0%</div>
-            <div class="metric-status">Not calculated</div>
+          <div class="metric-card savings">
+            <div class="metric-icon">📈</div>
+            <div class="metric-content">
+              <div class="metric-label">Savings Rate</div>
+              <div class="metric-value" id="metric-savings-rate">0%</div>
+              <div class="metric-status">Not calculated</div>
+            </div>
           </div>
-          <div class="metric-card">
-            <h4>Emergency Fund</h4>
-            <div class="metric-value" id="metric-emergency">$0</div>
-            <div class="metric-status">Not set</div>
+          <div class="metric-card emergency">
+            <div class="metric-icon">🛡️</div>
+            <div class="metric-content">
+              <div class="metric-label">Emergency Fund</div>
+              <div class="metric-value" id="metric-emergency">$0</div>
+              <div class="metric-status">Not set</div>
+            </div>
           </div>
-          <div class="metric-card">
-            <h4>Total Debt</h4>
-            <div class="metric-value" id="metric-debt">$0</div>
-            <div class="metric-status">Not calculated</div>
+          <div class="metric-card debt">
+            <div class="metric-icon">💳</div>
+            <div class="metric-content">
+              <div class="metric-label">Total Debt</div>
+              <div class="metric-value" id="metric-debt">$0</div>
+              <div class="metric-status">Not calculated</div>
+            </div>
           </div>
-          <div class="metric-card">
-            <h4>Investment Value</h4>
-            <div class="metric-value" id="metric-investments">$0</div>
-            <div class="metric-status">Not set</div>
+          <div class="metric-card investments">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+              <div class="metric-label">Investments</div>
+              <div class="metric-value" id="metric-investments">$0</div>
+              <div class="metric-status">Not set</div>
+            </div>
           </div>
         </div>
+      </div>
 
+      <!-- Two Column Layout for Recommendations and Actions -->
+      <div class="dashboard-grid">
         <!-- Recommendations -->
-        <div class="recommendations-section" id="dashboard-recommendations">
-          <h3>Personalized Recommendations</h3>
+        <div class="dashboard-section recommendations-section">
+          <div class="section-header">
+            <h3>Smart Recommendations</h3>
+            <span class="section-subtitle">Personalized next steps</span>
+          </div>
           <div class="recommendation-list" id="recommendation-list">
             <div class="recommendation-item priority-high">
               <div class="rec-icon">📊</div>
@@ -100,29 +135,61 @@
                 <h4>Start by calculating your income</h4>
                 <p>Use the Income tab to determine your take-home pay and set up your financial foundation.</p>
               </div>
+              <div class="rec-action">
+                <button class="rec-btn" onclick="switchTab('income')">Start</button>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="quick-actions">
-          <h3>Quick Actions</h3>
-          <div class="action-buttons">
-            <button class="action-btn" onclick="switchTab('income')">
-              <span class="action-icon">💰</span>
-              Calculate Income
+        <div class="dashboard-section quick-actions-section">
+          <div class="section-header">
+            <h3>Quick Actions</h3>
+            <span class="section-subtitle">Jump to any tool</span>
+          </div>
+          <div class="action-grid">
+            <button class="action-card" onclick="switchTab('income')">
+              <div class="action-icon">💰</div>
+              <div class="action-content">
+                <div class="action-title">Income Calculator</div>
+                <div class="action-desc">Calculate take-home pay</div>
+              </div>
             </button>
-            <button class="action-btn" onclick="switchTab('budget')">
-              <span class="action-icon">📋</span>
-              Plan Budget
+            <button class="action-card" onclick="switchTab('budget')">
+              <div class="action-icon">📋</div>
+              <div class="action-content">
+                <div class="action-title">Budget Planner</div>
+                <div class="action-desc">Track your expenses</div>
+              </div>
             </button>
-            <button class="action-btn" onclick="switchTab('goals')">
-              <span class="action-icon">🎯</span>
-              Set Goals
+            <button class="action-card" onclick="switchTab('debt')">
+              <div class="action-icon">💳</div>
+              <div class="action-content">
+                <div class="action-title">Debt Payoff</div>
+                <div class="action-desc">Plan debt elimination</div>
+              </div>
             </button>
-            <button class="action-btn" onclick="switchTab('emergency')">
-              <span class="action-icon">🛡️</span>
-              Emergency Fund
+            <button class="action-card" onclick="switchTab('emergency')">
+              <div class="action-icon">🛡️</div>
+              <div class="action-content">
+                <div class="action-title">Emergency Fund</div>
+                <div class="action-desc">Build your safety net</div>
+              </div>
+            </button>
+            <button class="action-card" onclick="switchTab('goals')">
+              <div class="action-icon">🎯</div>
+              <div class="action-content">
+                <div class="action-title">Financial Goals</div>
+                <div class="action-desc">Set and track goals</div>
+              </div>
+            </button>
+            <button class="action-card" onclick="switchTab('investment')">
+              <div class="action-icon">📈</div>
+              <div class="action-content">
+                <div class="action-title">Investments</div>
+                <div class="action-desc">Safe stock picks</div>
+              </div>
             </button>
           </div>
         </div>
