@@ -1050,7 +1050,7 @@
     event.preventDefault();
 
     const formData = new FormData(investmentForm);
-    const investmentAmount = toNumber(formData.get('investmentAmount'));
+    const investmentAmount = sanitizeNumber(formData.get('investmentAmount'));
     const riskTolerance = formData.get('riskTolerance');
     const investmentTimeframe = formData.get('investmentTimeframe');
     const focusType = formData.get('focusType');
