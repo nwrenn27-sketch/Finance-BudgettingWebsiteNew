@@ -1531,6 +1531,54 @@ label {
   opacity: 0.8;
 }
 
+/* Budget Summary Styles */
+.budget-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.budget-summary-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.summary-value.positive {
+  color: var(--accent);
+}
+
+.summary-value.negative {
+  color: var(--error);
+}
+
+.summary-value.excellent {
+  color: var(--accent);
+}
+
+.summary-value.good {
+  color: var(--primary);
+}
+
+.summary-value.needs-improvement {
+  color: var(--warning);
+}
+
 /* ============================================================================
    DEBT PAYOFF COMPONENTS STYLING
    ============================================================================ */

@@ -979,6 +979,8 @@
     // Save budget data for dashboard
     const totalExpenses = Object.values(expenses).reduce((sum, expense) => sum + expense, 0);
     saveToLocalStorage('monthlyExpenses', totalExpenses);
+    saveToLocalStorage('budgetAnalysis', analysis);
+    saveToLocalStorage('lastBudgetUpdate', new Date().toISOString());
 
     renderBudgetResults(analysis, savingsRecommendations, expenseRecommendations);
     updateDashboard();
@@ -1113,33 +1115,80 @@
 
     // Update metric cards
     if (metricIncomeEl) {
-      metricIncomeEl.textContent = toCurrency(monthlyIncome);
+      metricIncomeEl.textContent = monthlyIncome > 0 ? toCurrency(monthlyIncome) : '--';
       metricIncomeEl.nextElementSibling.textContent = monthlyIncome > 0 ? 'Calculated' : 'Not calculated';
     }
     if (metricExpensesEl) {
-      metricExpensesEl.textContent = toCurrency(monthlyExpenses);
+      metricExpensesEl.textContent = monthlyExpenses > 0 ? toCurrency(monthlyExpenses) : '--';
       metricExpensesEl.nextElementSibling.textContent = monthlyExpenses > 0 ? 'Calculated' : 'Not calculated';
     }
     if (metricSavingsRateEl) {
-      metricSavingsRateEl.textContent = savingsRate.toFixed(1) + '%';
+      metricSavingsRateEl.textContent = monthlyIncome > 0 ? savingsRate.toFixed(1) + '%' : '--';
       metricSavingsRateEl.nextElementSibling.textContent = monthlyIncome > 0 ? 'Calculated' : 'Not calculated';
     }
     if (metricEmergencyEl) {
-      metricEmergencyEl.textContent = toCurrency(savedData.emergencyFund);
+      metricEmergencyEl.textContent = savedData.emergencyFund > 0 ? toCurrency(savedData.emergencyFund) : '--';
       metricEmergencyEl.nextElementSibling.textContent = savedData.emergencyFund > 0 ? 'On track' : 'Not set';
     }
     if (metricDebtEl) {
-      metricDebtEl.textContent = toCurrency(totalDebt);
-      metricDebtEl.nextElementSibling.textContent = totalDebt > 0 ? 'Active debts' : 'Debt free!';
+      metricDebtEl.textContent = totalDebt > 0 ? toCurrency(totalDebt) : '--';
+      metricDebtEl.nextElementSibling.textContent = totalDebt > 0 ? 'Active debts' : 'No debts';
     }
     if (metricInvestmentsEl) {
-      // For now, we don't track investment values, so show $0
-      metricInvestmentsEl.textContent = '$0';
+      // For now, we don't track investment values
+      metricInvestmentsEl.textContent = '--';
       metricInvestmentsEl.nextElementSibling.textContent = 'Not tracking';
     }
 
+    // Update budget summary if available
+    updateBudgetSummary();
+
     // Generate recommendations
     generateRecommendations(metrics);
+  }
+
+  /**
+   * Updates the budget summary section on the dashboard
+   */
+  function updateBudgetSummary() {
+    const budgetSummarySection = document.getElementById('budget-summary-section');
+    const budgetSummaryContent = document.getElementById('budget-summary-content');
+
+    if (!budgetSummarySection || !budgetSummaryContent) return;
+
+    const budgetAnalysis = loadFromLocalStorage('budgetAnalysis', null);
+    const lastUpdate = loadFromLocalStorage('lastBudgetUpdate', null);
+
+    if (!budgetAnalysis) {
+      budgetSummarySection.style.display = 'none';
+      return;
+    }
+
+    budgetSummarySection.style.display = 'block';
+
+    const updateDate = lastUpdate ? new Date(lastUpdate).toLocaleDateString() : 'Unknown';
+    const { totalExpenses, remainingIncome, savingsRate, income } = budgetAnalysis;
+
+    budgetSummaryContent.innerHTML = `
+      <div class="budget-summary-grid">
+        <div class="budget-summary-item">
+          <div class="summary-label">Total Monthly Expenses</div>
+          <div class="summary-value">${toCurrency(totalExpenses)}</div>
+        </div>
+        <div class="budget-summary-item">
+          <div class="summary-label">Remaining Income</div>
+          <div class="summary-value ${remainingIncome >= 0 ? 'positive' : 'negative'}">${toCurrency(remainingIncome)}</div>
+        </div>
+        <div class="budget-summary-item">
+          <div class="summary-label">Savings Rate</div>
+          <div class="summary-value ${savingsRate >= 20 ? 'excellent' : savingsRate >= 10 ? 'good' : 'needs-improvement'}">${savingsRate.toFixed(1)}%</div>
+        </div>
+        <div class="budget-summary-item">
+          <div class="summary-label">Last Updated</div>
+          <div class="summary-value">${updateDate}</div>
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -1742,7 +1791,6 @@
   window.deleteGoal = deleteGoal;
   window.editGoal = editGoal;
   window.removeDebtInput = removeDebtInput;
-  window.switchTab = switchTab;
 
   // ============================================================================
   // INVESTMENT FUNCTIONS
@@ -1994,7 +2042,8 @@
    */
   function switchTab(tabName) {
     // Update tab button states
-    tabBtns.forEach(btn => {
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
       btn.classList.remove('active');
       if (btn.dataset.tab === tabName) {
         btn.classList.add('active');
@@ -2002,12 +2051,24 @@
     });
 
     // Update tab content visibility
-    tabContents.forEach(content => {
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(content => {
       content.classList.remove('active');
       if (content.id === `${tabName}-tab`) {
         content.classList.add('active');
       }
     });
+
+    // Refresh data when switching to specific tabs
+    if (tabName === 'budget') {
+      const savedIncome = loadFromLocalStorage('monthlyIncome', 0);
+      if (savedIncome > 0) {
+        syncFromIncome(savedIncome);
+      }
+      updateAllExpenseVisuals();
+    } else if (tabName === 'dashboard') {
+      updateDashboard();
+    }
   }
 
   // ============================================================================
@@ -2048,16 +2109,195 @@
     }
   });
 
+  // Initialize budget form with saved income
+  const savedIncome = loadFromLocalStorage('monthlyIncome', 0);
+  if (savedIncome > 0) {
+    syncFromIncome(savedIncome);
+  }
+
   updateAllExpenseVisuals();
 
   // Initialize dashboard and goals display
   updateDashboard();
   displayGoals();
 
-  // Tab navigation event listeners
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      switchTab(btn.dataset.tab);
+  // Tab navigation event listeners - use fresh selectors to ensure elements are found
+  const tabButtons = document.querySelectorAll('.tab-btn');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabName = btn.dataset.tab;
+      if (tabName) {
+        switchTab(tabName);
+      }
     });
   });
 })();
+
+/* ============================================================================
+   GLOBAL TAB NAVIGATION SYSTEM
+   ============================================================================ */
+
+/**
+ * Global tab switching function - handles all tab navigation
+ * This function is available globally so it can be called from anywhere
+ * @param {string} tabName - The name of the tab to switch to (matches data-tab attribute)
+ */
+window.switchTab = function(tabName) {
+  console.log('🔄 Switching to tab:', tabName);
+
+  try {
+    // Find all tab navigation buttons and update their active state
+    const buttons = document.querySelectorAll('.tab-btn');
+    console.log('📋 Found', buttons.length, 'tab buttons');
+
+    buttons.forEach(function(btn) {
+      // Remove active class from all buttons
+      btn.classList.remove('active');
+
+      // Add active class to the clicked button
+      if (btn.getAttribute('data-tab') === tabName) {
+        btn.classList.add('active');
+        console.log('✅ Activated button for:', tabName);
+      }
+    });
+
+    // Find all tab content sections and update their visibility
+    const contents = document.querySelectorAll('.tab-content');
+    console.log('📄 Found', contents.length, 'tab content sections');
+
+    let tabFound = false;
+    contents.forEach(function(content) {
+      // Hide all tab content
+      content.classList.remove('active');
+
+      // Show the target tab content
+      if (content.id === tabName + '-tab') {
+        content.classList.add('active');
+        tabFound = true;
+        console.log('✅ Activated content for:', content.id);
+      }
+    });
+
+    if (!tabFound) {
+      console.error('❌ Tab not found:', tabName + '-tab');
+      return;
+    }
+
+    // Perform tab-specific actions when switching
+    handleTabSpecificActions(tabName);
+
+    console.log('✅ Tab switch completed successfully');
+
+  } catch (error) {
+    console.error('❌ Error switching tabs:', error);
+  }
+};
+
+/**
+ * Handles specific actions needed when switching to certain tabs
+ * @param {string} tabName - The name of the tab that was switched to
+ */
+function handleTabSpecificActions(tabName) {
+  switch (tabName) {
+    case 'budget':
+      // Load saved income data when switching to budget tab
+      try {
+        const savedIncome = JSON.parse(localStorage.getItem('monthlyIncome') || '0');
+        if (savedIncome > 0) {
+          const monthlyIncomeInput = document.getElementById('monthly-income');
+          const monthlyIncomeDisplay = document.getElementById('monthly-income-display');
+
+          if (monthlyIncomeInput) {
+            monthlyIncomeInput.value = savedIncome.toFixed(2);
+            console.log('💰 Loaded saved income:', savedIncome);
+          }
+
+          if (monthlyIncomeDisplay) {
+            monthlyIncomeDisplay.textContent = '$' + savedIncome.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading budget data:', error);
+      }
+      break;
+
+    case 'dashboard':
+      // Refresh dashboard data when returning to dashboard
+      try {
+        // Note: updateDashboard function is inside IIFE, so we'll trigger it differently
+        console.log('🏠 Refreshing dashboard data');
+        // The dashboard will auto-update through the existing system
+      } catch (error) {
+        console.error('❌ Error updating dashboard:', error);
+      }
+      break;
+
+    default:
+      // No specific actions needed for other tabs
+      console.log('ℹ️ No specific actions for tab:', tabName);
+  }
+}
+
+/* ============================================================================
+   TAB NAVIGATION EVENT LISTENERS SETUP
+   ============================================================================ */
+
+/**
+ * Set up all tab navigation event listeners
+ * This runs when the DOM is fully loaded to ensure all elements exist
+ */
+function setupTabNavigation() {
+  console.log('🚀 Setting up tab navigation system...');
+
+  // Find all tab navigation buttons
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  console.log('🔍 Found', tabButtons.length, 'tab buttons to set up');
+
+  // Add click event listener to each tab button
+  tabButtons.forEach(function(btn, index) {
+    const tabName = btn.getAttribute('data-tab');
+    console.log('⚙️ Setting up button', index + 1, 'for tab:', tabName);
+
+    // Add click event listener
+    btn.addEventListener('click', function(event) {
+      // Prevent any default behavior
+      event.preventDefault();
+      event.stopPropagation();
+
+      console.log('🖱️ Tab button clicked:', tabName);
+
+      // Call the global switchTab function
+      if (tabName && window.switchTab) {
+        window.switchTab(tabName);
+      } else {
+        console.error('❌ No tab name or switchTab function not available');
+      }
+    });
+  });
+
+  console.log('✅ Tab navigation setup completed');
+}
+
+/* ============================================================================
+   INITIALIZATION - RUNS WHEN PAGE LOADS
+   ============================================================================ */
+
+// Wait for DOM to be fully loaded before setting up tab navigation
+if (document.readyState === 'loading') {
+  // DOM is still loading, wait for it
+  document.addEventListener('DOMContentLoaded', setupTabNavigation);
+} else {
+  // DOM is already loaded, set up immediately
+  setupTabNavigation();
+}
+
+// Also try setting up tab navigation after a short delay as backup
+setTimeout(function() {
+  console.log('🔄 Backup tab navigation setup...');
+  setupTabNavigation();
+}, 1000);
