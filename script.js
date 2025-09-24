@@ -10,9 +10,40 @@
 
 (function() {
   // ============================================================================
+  // THEME MANAGEMENT
+  // ============================================================================
+
+  // Initialize theme
+  function initializeTheme() {
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    updateThemeIcon(theme);
+  }
+
+  function updateThemeIcon(theme) {
+    const themeToggle = document.getElementById('theme-toggle');
+    const svg = themeToggle.querySelector('svg');
+
+    if (theme === 'dark') {
+      svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+    } else {
+      svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+    }
+  }
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+  }
+
+  // ============================================================================
   // DOM ELEMENT REFERENCES
   // ============================================================================
-  
+
   // Income calculator form elements
   const form = document.getElementById('income-form');
   const payAmountInput = document.getElementById('pay-amount');
@@ -570,7 +601,7 @@
         <p><strong>Monthly:</strong> ${toCurrency(monthlyNetIncome)} · <strong>Weekly:</strong> ${toCurrency(taxData.netIncome / 52)} · <strong>Daily (workday est.):</strong> ${toCurrency(taxData.netIncome / 52 / 5)}</p>
       </div>
     `;
-    resultsEl.innerHTML = content; // Replace previous markup with the latest calculation output
+  if (resultsEl) resultsEl.innerHTML = content; // Replace previous markup with the latest calculation output
 
     renderBudget(monthlyNetIncome);
   }
@@ -791,7 +822,7 @@
       `;
     }
 
-    budgetResultsEl.innerHTML = content;
+  if (budgetResultsEl) budgetResultsEl.innerHTML = content;
   }
 
   /**
@@ -808,7 +839,7 @@
         </div>
       `;
     }).join('');
-    budgetEl.innerHTML = items; // Present the guideline allocations alongside income results
+  if (budgetEl) budgetEl.innerHTML = items; // Present the guideline allocations alongside income results
   }
 
   /**
@@ -890,14 +921,18 @@
    * Shows/hides relevant fields for different pay frequency options
    */
   function updateVisibility() {
+    if (!payFrequencySelect) return;
     const frequency = payFrequencySelect.value;
     const showHour = frequency === 'hour';
     const showDay = frequency === 'hour' || frequency === 'day';
     const showWeek = frequency === 'hour' || frequency === 'day' || frequency === 'week';
+    const hoursField = document.getElementById('hours-per-day-field');
+    const daysField = document.getElementById('days-per-week-field');
+    const weeksField = document.getElementById('weeks-per-year-field');
 
-    document.getElementById('hours-per-day-field').style.display = showHour ? '' : 'none';
-    document.getElementById('days-per-week-field').style.display = showDay ? '' : 'none';
-    document.getElementById('weeks-per-year-field').style.display = showWeek ? '' : 'none';
+    if (hoursField) hoursField.style.display = showHour ? '' : 'none';
+    if (daysField) daysField.style.display = showDay ? '' : 'none';
+    if (weeksField) weeksField.style.display = showWeek ? '' : 'none';
   }
 
   // ============================================================================
@@ -920,15 +955,15 @@
 
     // Validate pay amount
     if (payAmount <= 0) {
-      resultsEl.textContent = 'Enter a valid pay amount.';
-      budgetEl.innerHTML = '';
+      if (resultsEl) resultsEl.textContent = 'Enter a valid pay amount.';
+      if (budgetEl) budgetEl.innerHTML = '';
       return;
     }
 
     // Validate ZIP code format
     if (!zipcode || !/^\d{5}(-\d{4})?$/.test(zipcode)) {
-      resultsEl.textContent = 'Please enter a valid 5-digit ZIP code.';
-      budgetEl.innerHTML = '';
+      if (resultsEl) resultsEl.textContent = 'Please enter a valid 5-digit ZIP code.';
+      if (budgetEl) budgetEl.innerHTML = '';
       return;
     }
 
@@ -941,9 +976,9 @@
    * Clears all form fields and results
    */
   function onReset() {
-    form.reset();
-    resultsEl.textContent = '';
-    budgetEl.innerHTML = '';
+    if (form) form.reset();
+    if (resultsEl) resultsEl.textContent = '';
+    if (budgetEl) budgetEl.innerHTML = '';
     updateVisibility();
   }
 
@@ -992,8 +1027,8 @@
    */
   function onBudgetReset() {
     const incomeSnapshot = getMonthlyIncomeValue();
-    budgetForm.reset();
-    budgetResultsEl.textContent = '';
+    if (budgetForm) budgetForm.reset();
+    if (budgetResultsEl) budgetResultsEl.textContent = '';
     monthlyIncomeInput.value = incomeSnapshot.toFixed(2);
     if (monthlyIncomeDisplay) {
       monthlyIncomeDisplay.textContent = toCurrency(incomeSnapshot);
@@ -1308,14 +1343,14 @@
     debtCounter++;
     const debtItem = document.createElement('div');
     debtItem.className = 'debt-item';
-    debtItem.innerHTML = `
+  if (debtItem) debtItem.innerHTML = `
       <input type="text" placeholder="Debt name (e.g., Credit Card)" data-field="name" required>
       <input type="number" placeholder="Balance" data-field="balance" step="0.01" min="0" required>
       <input type="number" placeholder="Interest Rate (%)" data-field="rate" step="0.01" min="0" required>
       <input type="number" placeholder="Min Payment" data-field="payment" step="0.01" min="0" required>
       <button type="button" class="remove-debt-btn" onclick="removeDebtInput(this)">×</button>
     `;
-    debtListEl.appendChild(debtItem);
+    if (debtListEl) debtListEl.appendChild(debtItem);
   }
 
   /**
@@ -1452,11 +1487,13 @@
     event.preventDefault();
 
     const debts = collectDebtData();
-    const extraPayment = sanitizeNumber(document.getElementById('extra-payment').value) || 0;
-    const strategy = document.getElementById('payoff-strategy').value;
+    const extraPaymentEl = document.getElementById('extra-payment');
+    const payoffStrategyEl = document.getElementById('payoff-strategy');
+    const extraPayment = extraPaymentEl ? sanitizeNumber(extraPaymentEl.value) || 0 : 0;
+    const strategy = payoffStrategyEl ? payoffStrategyEl.value : 'avalanche';
 
     if (debts.length === 0) {
-      debtResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please add at least one debt.</p></div>';
+    if (debtResultsEl) debtResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please add at least one debt.</p></div>';
       return;
     }
 
@@ -1532,7 +1569,7 @@
       </div>
     `;
 
-    debtResultsEl.innerHTML = html;
+  if (debtResultsEl) debtResultsEl.innerHTML = html;
   }
 
   /**
@@ -1540,8 +1577,8 @@
    */
   function onDebtReset() {
     debtForm.reset();
-    debtListEl.innerHTML = '';
-    debtResultsEl.innerHTML = '';
+  if (debtListEl) debtListEl.innerHTML = '';
+  if (debtResultsEl) debtResultsEl.innerHTML = '';
     debtCounter = 0;
   }
 
@@ -1563,7 +1600,7 @@
     const monthlyContribution = sanitizeNumber(formData.get('monthlyContribution')) || 0;
 
     if (monthlyExpenses <= 0) {
-      emergencyResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please enter valid monthly expenses.</p></div>';
+  if (emergencyResultsEl) emergencyResultsEl.innerHTML = '<div class="error-message"><h4>Error</h4><p>Please enter valid monthly expenses.</p></div>';
       return;
     }
 
@@ -1627,7 +1664,7 @@
       </div>
     `;
 
-    emergencyResultsEl.innerHTML = html;
+  if (emergencyResultsEl) emergencyResultsEl.innerHTML = html;
   }
 
   /**
@@ -1635,7 +1672,7 @@
    */
   function onEmergencyReset() {
     emergencyForm.reset();
-    emergencyResultsEl.innerHTML = '';
+  if (emergencyResultsEl) emergencyResultsEl.innerHTML = '';
   }
 
   // ============================================================================
@@ -1682,7 +1719,7 @@
     const goals = loadFromLocalStorage('goals', []);
 
     if (goals.length === 0) {
-      goalsListEl.innerHTML = '<div class="no-goals-message"><p>No goals set yet. Add your first financial goal above!</p></div>';
+  if (goalsListEl) goalsListEl.innerHTML = '<div class="no-goals-message"><p>No goals set yet. Add your first financial goal above!</p></div>';
       return;
     }
 
@@ -1746,7 +1783,7 @@
       `;
     }).join('');
 
-    goalsListEl.innerHTML = html;
+  if (goalsListEl) goalsListEl.innerHTML = html;
   }
 
   /**
@@ -1904,7 +1941,7 @@
    * @param {string} focus - Investment focus type
    */
   async function displayInvestmentResults(amount, risk, timeframe, focus) {
-    investmentResultsEl.innerHTML = '<div class="loading">Generating recommendations...</div>';
+  if (investmentResultsEl) investmentResultsEl.innerHTML = '<div class="loading">Generating recommendations...</div>';
 
     const recommendations = getInvestmentRecommendations(risk, focus);
 
@@ -2009,7 +2046,7 @@
       </div>
     `;
 
-    investmentResultsEl.innerHTML = resultsHTML;
+  if (investmentResultsEl) investmentResultsEl.innerHTML = resultsHTML;
   }
 
   /**
@@ -2017,7 +2054,7 @@
    * @param {string} message - Error message to display
    */
   function displayInvestmentError(message) {
-    investmentResultsEl.innerHTML = `
+  if (investmentResultsEl) investmentResultsEl.innerHTML = `
       <div class="error-message">
         <h4>Error</h4>
         <p>${message}</p>
@@ -2115,6 +2152,32 @@
     syncFromIncome(savedIncome);
   }
 
+  /**
+   * Synchronizes budget inputs/display from a given monthly income value.
+   * This helper was referenced in several places but not defined, causing a
+   * ReferenceError when switching tabs or during initialization if saved income exists.
+   * @param {number} monthlyIncome
+   */
+  function syncFromIncome(monthlyIncome) {
+    try {
+      const normalized = Number(monthlyIncome) || 0;
+      const monthlyIncomeInputEl = document.getElementById('monthly-income');
+      const monthlyIncomeDisplayEl = document.getElementById('monthly-income-display');
+
+      if (monthlyIncomeInputEl) {
+        monthlyIncomeInputEl.value = normalized.toFixed(2);
+      }
+      if (monthlyIncomeDisplayEl) {
+        monthlyIncomeDisplayEl.textContent = toCurrency(normalized);
+      }
+
+      // Ensure expense visuals reflect the newly synced income
+      updateAllExpenseVisuals();
+    } catch (err) {
+      console.error('syncFromIncome error:', err);
+    }
+  }
+
   updateAllExpenseVisuals();
 
   // Initialize dashboard and goals display
@@ -2136,168 +2199,81 @@
 })();
 
 /* ============================================================================
-   GLOBAL TAB NAVIGATION SYSTEM
+   BASIC TAB NAVIGATION - WORKING VERSION
    ============================================================================ */
 
-/**
- * Global tab switching function - handles all tab navigation
- * This function is available globally so it can be called from anywhere
- * @param {string} tabName - The name of the tab to switch to (matches data-tab attribute)
- */
-window.switchTab = function(tabName) {
-  console.log('🔄 Switching to tab:', tabName);
+// Basic tab switching function
+function switchTab(tabName) {
+  // Hide all tab content
+  document.querySelectorAll('.tab-content').forEach(function(tab) {
+    tab.classList.remove('active');
+  });
 
-  try {
-    // Find all tab navigation buttons and update their active state
-    const buttons = document.querySelectorAll('.tab-btn');
-    console.log('📋 Found', buttons.length, 'tab buttons');
+  // Remove active styling from all buttons
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.remove('bg-primary', 'text-primary-foreground');
+    btn.classList.add('hover:bg-accent', 'hover:text-accent-foreground', 'text-muted-foreground');
+  });
 
-    buttons.forEach(function(btn) {
-      // Remove active class from all buttons
-      btn.classList.remove('active');
-
-      // Add active class to the clicked button
-      if (btn.getAttribute('data-tab') === tabName) {
-        btn.classList.add('active');
-        console.log('✅ Activated button for:', tabName);
-      }
-    });
-
-    // Find all tab content sections and update their visibility
-    const contents = document.querySelectorAll('.tab-content');
-    console.log('📄 Found', contents.length, 'tab content sections');
-
-    let tabFound = false;
-    contents.forEach(function(content) {
-      // Hide all tab content
-      content.classList.remove('active');
-
-      // Show the target tab content
-      if (content.id === tabName + '-tab') {
-        content.classList.add('active');
-        tabFound = true;
-        console.log('✅ Activated content for:', content.id);
-      }
-    });
-
-    if (!tabFound) {
-      console.error('❌ Tab not found:', tabName + '-tab');
-      return;
-    }
-
-    // Perform tab-specific actions when switching
-    handleTabSpecificActions(tabName);
-
-    console.log('✅ Tab switch completed successfully');
-
-  } catch (error) {
-    console.error('❌ Error switching tabs:', error);
+  // Show target tab
+  const targetTab = document.getElementById(tabName + '-tab');
+  if (targetTab) {
+    targetTab.classList.add('active');
   }
-};
 
-/**
- * Handles specific actions needed when switching to certain tabs
- * @param {string} tabName - The name of the tab that was switched to
- */
-function handleTabSpecificActions(tabName) {
-  switch (tabName) {
-    case 'budget':
-      // Load saved income data when switching to budget tab
-      try {
-        const savedIncome = JSON.parse(localStorage.getItem('monthlyIncome') || '0');
-        if (savedIncome > 0) {
-          const monthlyIncomeInput = document.getElementById('monthly-income');
-          const monthlyIncomeDisplay = document.getElementById('monthly-income-display');
+  // Activate target button
+  const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+  if (targetBtn) {
+    targetBtn.classList.remove('hover:bg-accent', 'hover:text-accent-foreground', 'text-muted-foreground');
+    targetBtn.classList.add('bg-primary', 'text-primary-foreground');
+  }
 
-          if (monthlyIncomeInput) {
-            monthlyIncomeInput.value = savedIncome.toFixed(2);
-            console.log('💰 Loaded saved income:', savedIncome);
-          }
+  // Handle tab-specific actions
+  if (tabName === 'budget') {
+    // Sync budget form with saved income
+    try {
+      const savedIncome = JSON.parse(localStorage.getItem('monthlyIncome') || '0');
+      if (savedIncome > 0) {
+        const monthlyIncomeInput = document.getElementById('monthly-income');
+        const monthlyIncomeDisplay = document.getElementById('monthly-income-display');
 
-          if (monthlyIncomeDisplay) {
-            monthlyIncomeDisplay.textContent = '$' + savedIncome.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
-          }
+        if (monthlyIncomeInput) {
+          monthlyIncomeInput.value = savedIncome.toFixed(2);
         }
-      } catch (error) {
-        console.error('❌ Error loading budget data:', error);
+        if (monthlyIncomeDisplay) {
+          monthlyIncomeDisplay.textContent = '$' + savedIncome.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        }
       }
-      break;
-
-    case 'dashboard':
-      // Refresh dashboard data when returning to dashboard
-      try {
-        // Note: updateDashboard function is inside IIFE, so we'll trigger it differently
-        console.log('🏠 Refreshing dashboard data');
-        // The dashboard will auto-update through the existing system
-      } catch (error) {
-        console.error('❌ Error updating dashboard:', error);
-      }
-      break;
-
-    default:
-      // No specific actions needed for other tabs
-      console.log('ℹ️ No specific actions for tab:', tabName);
+    } catch (error) {
+      console.error('Error loading budget data:', error);
+    }
   }
 }
 
-/* ============================================================================
-   TAB NAVIGATION EVENT LISTENERS SETUP
-   ============================================================================ */
+// Make it globally available
+window.switchTab = switchTab;
 
-/**
- * Set up all tab navigation event listeners
- * This runs when the DOM is fully loaded to ensure all elements exist
- */
-function setupTabNavigation() {
-  console.log('🚀 Setting up tab navigation system...');
+// Setup tab navigation when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize theme
+  initializeTheme();
 
-  // Find all tab navigation buttons
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  console.log('🔍 Found', tabButtons.length, 'tab buttons to set up');
+  // Theme toggle event listener
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
 
-  // Add click event listener to each tab button
-  tabButtons.forEach(function(btn, index) {
-    const tabName = btn.getAttribute('data-tab');
-    console.log('⚙️ Setting up button', index + 1, 'for tab:', tabName);
-
-    // Add click event listener
-    btn.addEventListener('click', function(event) {
-      // Prevent any default behavior
-      event.preventDefault();
-      event.stopPropagation();
-
-      console.log('🖱️ Tab button clicked:', tabName);
-
-      // Call the global switchTab function
-      if (tabName && window.switchTab) {
-        window.switchTab(tabName);
-      } else {
-        console.error('❌ No tab name or switchTab function not available');
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const tabName = this.getAttribute('data-tab');
+      if (tabName) {
+        switchTab(tabName);
       }
     });
   });
-
-  console.log('✅ Tab navigation setup completed');
-}
-
-/* ============================================================================
-   INITIALIZATION - RUNS WHEN PAGE LOADS
-   ============================================================================ */
-
-// Wait for DOM to be fully loaded before setting up tab navigation
-if (document.readyState === 'loading') {
-  // DOM is still loading, wait for it
-  document.addEventListener('DOMContentLoaded', setupTabNavigation);
-} else {
-  // DOM is already loaded, set up immediately
-  setupTabNavigation();
-}
-
-// Also try setting up tab navigation after a short delay as backup
-setTimeout(function() {
-  console.log('🔄 Backup tab navigation setup...');
-  setupTabNavigation();
-}, 1000);
+});
