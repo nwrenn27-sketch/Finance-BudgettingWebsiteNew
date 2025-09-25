@@ -10,6 +10,256 @@
 
 (function() {
   // ============================================================================
+  // DATA MANAGEMENT SYSTEM
+  // ============================================================================
+
+  // Central data store for all financial information
+  const FinancialDataStore = {
+    income: {
+      payAmount: 0,
+      payFrequency: 'hour',
+      hoursPerDay: 8,
+      daysPerWeek: 5,
+      weeksPerYear: 52,
+      zipcode: '',
+      monthlyNetIncome: 0,
+      annualGrossIncome: 0,
+      calculatedDate: null
+    },
+    budget: {
+      monthlyIncome: 0,
+      expenses: {
+        rentMortgage: 0,
+        utilities: 0,
+        groceries: 0,
+        transportation: 0,
+        insurance: 0,
+        debtPayments: 0,
+        diningOut: 0,
+        shopping: 0,
+        subscriptions: 0,
+        miscellaneous: 0
+      },
+      totalExpenses: 0,
+      remainingIncome: 0,
+      savingsRate: 0,
+      calculatedDate: null
+    },
+    debts: [],
+    emergencyFund: {
+      monthlyExpenses: 0,
+      targetMonths: 6,
+      currentAmount: 0,
+      monthlyContribution: 0,
+      targetAmount: 0,
+      calculatedDate: null
+    },
+    goals: [],
+    investments: {
+      monthlyAmount: 0,
+      riskTolerance: 'moderate',
+      timeframe: 'medium',
+      focusType: 'dividend',
+      calculatedDate: null
+    },
+    lastUpdated: null,
+    version: '1.0'
+  };
+
+  // Save data to localStorage
+  function saveFinancialData() {
+    try {
+      FinancialDataStore.lastUpdated = new Date().toISOString();
+      localStorage.setItem('financialData', JSON.stringify(FinancialDataStore));
+      showNotification('Data saved successfully!', 'success');
+    } catch (error) {
+      console.error('Error saving financial data:', error);
+      showNotification('Error saving data. Please try again.', 'error');
+    }
+  }
+
+  // Load data from localStorage
+  function loadFinancialData() {
+    try {
+      const savedData = localStorage.getItem('financialData');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        // Merge saved data with default structure to handle version updates
+        Object.assign(FinancialDataStore, data);
+        populateFormsWithSavedData();
+        updateDashboard();
+        showNotification('Data loaded successfully!', 'success');
+        return true;
+      }
+    } catch (error) {
+      console.error('Error loading financial data:', error);
+      showNotification('Error loading saved data.', 'error');
+    }
+    return false;
+  }
+
+  // Export data as JSON file
+  function exportFinancialData() {
+    try {
+      const dataStr = JSON.stringify(FinancialDataStore, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `financial-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showNotification('Data exported successfully!', 'success');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      showNotification('Error exporting data.', 'error');
+    }
+  }
+
+  // Import data from JSON file
+  function importFinancialData(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        if (importedData && importedData.version) {
+          Object.assign(FinancialDataStore, importedData);
+          saveFinancialData();
+          populateFormsWithSavedData();
+          updateDashboard();
+          showNotification('Data imported successfully!', 'success');
+        } else {
+          showNotification('Invalid data format.', 'error');
+        }
+      } catch (error) {
+        console.error('Error importing data:', error);
+        showNotification('Error importing data. Please check file format.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Show notification to user
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 animate-slide-in ${
+      type === 'success' ? 'bg-green-600' :
+      type === 'error' ? 'bg-red-600' :
+      'bg-blue-600'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateY(-10px)';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+  }
+
+  // Clear all financial data
+  function clearAllData() {
+    if (confirm('Are you sure you want to clear all financial data? This action cannot be undone.')) {
+      // Clear localStorage
+      localStorage.removeItem('financialData');
+
+      // Reset FinancialDataStore to default values
+      Object.assign(FinancialDataStore, {
+        version: '1.0',
+        income: {
+          payAmount: 0,
+          payFrequency: 'hour',
+          hoursPerDay: 8,
+          daysPerWeek: 5,
+          weeksPerYear: 52,
+          zipcode: '',
+          monthlyNetIncome: 0,
+          annualGrossIncome: 0,
+          calculatedDate: null
+        },
+        budget: {
+          monthlyIncome: 0,
+          expenses: {},
+          totalExpenses: 0,
+          analysis: null,
+          lastUpdated: null
+        },
+        debts: [],
+        debtStrategy: {
+          extraPayment: 0,
+          selectedStrategy: 'avalanche',
+          lastUpdated: null
+        },
+        emergencyFund: {
+          targetAmount: 0,
+          currentFund: 0,
+          monthlyExpenses: 0,
+          targetMonths: 6,
+          monthlyContribution: 0,
+          remainingAmount: 0,
+          progressPercent: 0,
+          monthsToGoal: 0,
+          lastUpdated: null
+        },
+        goals: [],
+        investments: {
+          amount: 0,
+          riskTolerance: 'moderate',
+          timeframe: '5-10',
+          focusType: 'balanced',
+          lastUpdated: null
+        },
+        lastUpdated: null
+      });
+
+      // Clear all forms
+      const forms = ['income-form', 'budget-form', 'debt-form', 'emergency-form', 'goals-form', 'investment-form'];
+      forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) form.reset();
+      });
+
+      // Clear results displays
+      const resultElements = [
+        'income-results', 'budget-results', 'debt-results',
+        'emergency-results', 'goals-results', 'investment-results'
+      ];
+      resultElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) element.innerHTML = '';
+      });
+
+      // Update dashboard
+      updateDashboard();
+      showNotification('All financial data cleared successfully!', 'success');
+    }
+  }
+
+  // Populate forms with saved data
+  function populateFormsWithSavedData() {
+    // Income form
+    if (FinancialDataStore.income.payAmount > 0) {
+      const payAmountInput = document.getElementById('pay-amount');
+      const payFrequencySelect = document.getElementById('pay-frequency');
+      const zipcodeInput = document.getElementById('zipcode');
+
+      if (payAmountInput) payAmountInput.value = FinancialDataStore.income.payAmount;
+      if (payFrequencySelect) payFrequencySelect.value = FinancialDataStore.income.payFrequency;
+      if (zipcodeInput) zipcodeInput.value = FinancialDataStore.income.zipcode;
+    }
+
+    // Budget form
+    if (FinancialDataStore.budget.monthlyIncome > 0) {
+      Object.keys(FinancialDataStore.budget.expenses).forEach(key => {
+        const input = document.getElementById(`${key.replace(/([A-Z])/g, '-$1').toLowerCase()}-amount`);
+        if (input) input.value = FinancialDataStore.budget.expenses[key];
+      });
+    }
+  }
+
+  // ============================================================================
   // THEME MANAGEMENT
   // ============================================================================
 
@@ -555,7 +805,19 @@
       applyMonthlyIncomeAutoFill(monthlyNetIncome);
     }
 
-    // Save income to localStorage for dashboard
+    // Save income data to FinancialDataStore
+    FinancialDataStore.income.payAmount = sanitizeNumber(payAmountInput.value);
+    FinancialDataStore.income.payFrequency = payFrequencySelect.value;
+    FinancialDataStore.income.hoursPerDay = sanitizeNumber(hoursPerDayInput.value) || 8;
+    FinancialDataStore.income.daysPerWeek = sanitizeNumber(daysPerWeekInput.value) || 5;
+    FinancialDataStore.income.weeksPerYear = sanitizeNumber(weeksPerYearInput.value) || 52;
+    FinancialDataStore.income.zipcode = zipcodeInput.value.trim();
+    FinancialDataStore.income.monthlyNetIncome = monthlyNetIncome;
+    FinancialDataStore.income.annualGrossIncome = annualIncome;
+    FinancialDataStore.income.calculatedDate = new Date().toISOString();
+
+    // Save to localStorage and dashboard
+    saveFinancialData();
     saveToLocalStorage('monthlyIncome', monthlyNetIncome);
 
     const content = `
@@ -1011,11 +1273,18 @@
     const savingsRecommendations = generateSavingsRecommendations(analysis);
     const expenseRecommendations = generateExpenseRecommendations(expenses, monthlyIncome);
 
-    // Save budget data for dashboard
-    const totalExpenses = Object.values(expenses).reduce((sum, expense) => sum + expense, 0);
-    saveToLocalStorage('monthlyExpenses', totalExpenses);
+    // Save budget data to FinancialDataStore
+    FinancialDataStore.budget.monthlyIncome = monthlyIncome;
+    FinancialDataStore.budget.expenses = expenses;
+    FinancialDataStore.budget.totalExpenses = Object.values(expenses).reduce((sum, expense) => sum + expense, 0);
+    FinancialDataStore.budget.analysis = analysis;
+    FinancialDataStore.budget.lastUpdated = new Date().toISOString();
+
+    // Save to localStorage and dashboard
+    saveFinancialData();
+    saveToLocalStorage('monthlyExpenses', FinancialDataStore.budget.totalExpenses);
     saveToLocalStorage('budgetAnalysis', analysis);
-    saveToLocalStorage('lastBudgetUpdate', new Date().toISOString());
+    saveToLocalStorage('lastBudgetUpdate', FinancialDataStore.budget.lastUpdated);
 
     renderBudgetResults(analysis, savingsRecommendations, expenseRecommendations);
     updateDashboard();
@@ -1497,7 +1766,16 @@
       return;
     }
 
-    // Save debts to localStorage
+    // Save debts data to FinancialDataStore
+    FinancialDataStore.debts = debts;
+    FinancialDataStore.debtStrategy = {
+      extraPayment: extraPayment,
+      selectedStrategy: strategy,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Save to localStorage and dashboard
+    saveFinancialData();
     saveToLocalStorage('debts', debts);
 
     const avalanchePlan = calculateAvalanche(debts, extraPayment);
@@ -1613,7 +1891,21 @@
       monthsToGoal = Math.ceil(remainingAmount / monthlyContribution);
     }
 
-    // Save to localStorage
+    // Save emergency fund data to FinancialDataStore
+    FinancialDataStore.emergencyFund = {
+      targetAmount: targetAmount,
+      currentFund: currentFund,
+      monthlyExpenses: monthlyExpenses,
+      targetMonths: targetMonths,
+      monthlyContribution: monthlyContribution,
+      remainingAmount: remainingAmount,
+      progressPercent: progressPercent,
+      monthsToGoal: monthsToGoal,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Save to localStorage and dashboard
+    saveFinancialData();
     saveToLocalStorage('emergencyFund', currentFund);
     saveToLocalStorage('monthlyExpenses', monthlyExpenses);
 
@@ -1703,9 +1995,14 @@
       return;
     }
 
-    const goals = loadFromLocalStorage('goals', []);
-    goals.push(goal);
-    saveToLocalStorage('goals', goals);
+    // Save goals data to FinancialDataStore
+    const existingGoals = FinancialDataStore.goals || [];
+    existingGoals.push(goal);
+    FinancialDataStore.goals = existingGoals;
+
+    // Save to localStorage and dashboard
+    saveFinancialData();
+    saveToLocalStorage('goals', existingGoals);
 
     goalsForm.reset();
     displayGoals();
@@ -1925,6 +2222,18 @@
       displayInvestmentError('Please enter a valid investment amount.');
       return;
     }
+
+    // Save investment data to FinancialDataStore
+    FinancialDataStore.investments = {
+      amount: investmentAmount,
+      riskTolerance: riskTolerance,
+      timeframe: investmentTimeframe,
+      focusType: focusType,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    saveFinancialData();
 
     try {
       displayInvestmentResults(investmentAmount, riskTolerance, investmentTimeframe, focusType);
@@ -2260,6 +2569,9 @@ window.switchTab = switchTab;
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize theme
   initializeTheme();
+
+  // Load saved financial data
+  loadFinancialData();
 
   // Theme toggle event listener
   const themeToggle = document.getElementById('theme-toggle');

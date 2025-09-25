@@ -222,10 +222,39 @@
     .status-neutral {
       color: hsl(var(--muted-foreground));
     }
+
+    /* Data management styles */
+    .cursor-pointer {
+      cursor: pointer;
+    }
+
+    .notification {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .notification.hidden {
+      display: none;
+    }
+
+    .notification.success {
+      background-color: hsl(var(--success) / 0.1);
+      color: hsl(var(--success));
+      border: 1px solid hsl(var(--success) / 0.2);
+    }
+
+    .notification.error {
+      background-color: hsl(var(--destructive) / 0.1);
+      color: hsl(var(--destructive));
+      border: 1px solid hsl(var(--destructive) / 0.2);
+    }
   </style>
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="./styles.css">
+  <!-- Modular stylesheets -->
+  <link rel="stylesheet" href="./css/styles.css">
   
   <!-- SEO meta description -->
   <meta name="description" content="Calculate your annual income from hourly, daily, weekly, monthly, or yearly pay and get smart budgeting suggestions by category.">
@@ -527,6 +556,43 @@
               </div>
             </button>
           </div>
+        </div>
+
+        <!-- Data Management Section -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h3>Data Management</h3>
+            <span class="section-subtitle">Export, import, or clear your financial data</span>
+          </div>
+          <div class="action-grid">
+            <button class="action-card" onclick="exportFinancialData()">
+              <div class="action-icon">📥</div>
+              <div class="action-content">
+                <div class="action-title">Export Data</div>
+                <div class="action-desc">Download as JSON file</div>
+              </div>
+            </button>
+
+            <label class="action-card cursor-pointer" for="import-file">
+              <div class="action-icon">📤</div>
+              <div class="action-content">
+                <div class="action-title">Import Data</div>
+                <div class="action-desc">Upload JSON file</div>
+              </div>
+              <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+            </label>
+
+            <button class="action-card" onclick="clearAllData()">
+              <div class="action-icon">🗑️</div>
+              <div class="action-content">
+                <div class="action-title">Clear Data</div>
+                <div class="action-desc">Reset all inputs</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Notification Area -->
+          <div id="notification" class="notification hidden"></div>
         </div>
       </div>
     </section>
@@ -1021,7 +1087,15 @@
     </div>
   </footer>
 
-  <!-- Main Application JavaScript -->
+  <!-- Modular JavaScript Files -->
+  <script src="./js/validation.js" defer></script>
+  <script src="./js/performance.js" defer></script>
+  <script src="./js/calculators.js" defer></script>
+  <script src="./js/dataManager.js" defer></script>
+  <script src="./js/uiUtils.js" defer></script>
+  <script src="./js/app.js" defer></script>
+
+  <!-- Legacy Script (keeping for backward compatibility) -->
   <script src="./script.js" defer></script>
   
 </body>
