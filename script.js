@@ -3029,4 +3029,305 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // ============================================================================
+  // ENHANCED INCOME CALCULATOR FUNCTIONALITY
+  // ============================================================================
+
+  // Initialize enhanced income calculator
+  function initializeEnhancedIncomeCalculator() {
+    const toggleAdditionalBtn = document.getElementById('toggle-additional');
+    const toggleDeductionsBtn = document.getElementById('toggle-deductions');
+    const additionalFields = document.getElementById('additional-income-fields');
+    const deductionFields = document.getElementById('deduction-fields');
+
+    // Toggle additional income fields
+    if (toggleAdditionalBtn && additionalFields) {
+      toggleAdditionalBtn.addEventListener('click', function() {
+        const isHidden = additionalFields.classList.contains('hidden');
+        if (isHidden) {
+          additionalFields.classList.remove('hidden');
+          this.textContent = '- Hide';
+        } else {
+          additionalFields.classList.add('hidden');
+          this.textContent = '+ Add';
+        }
+      });
+    }
+
+    // Toggle deduction fields
+    if (toggleDeductionsBtn && deductionFields) {
+      toggleDeductionsBtn.addEventListener('click', function() {
+        const isHidden = deductionFields.classList.contains('hidden');
+        if (isHidden) {
+          deductionFields.classList.remove('hidden');
+          this.textContent = '- Hide';
+        } else {
+          deductionFields.classList.add('hidden');
+          this.textContent = '+ Add';
+        }
+      });
+    }
+
+    // Real-time calculation on input changes
+    const formInputs = document.querySelectorAll('#income-form input, #income-form select');
+    formInputs.forEach(input => {
+      input.addEventListener('input', debounce(calculateEnhancedIncome, 500));
+    });
+  }
+
+  // Enhanced income calculation function
+  function calculateEnhancedIncome() {
+    const form = document.getElementById('income-form');
+    if (!form) return;
+
+    const formData = new FormData(form);
+
+    // Base income calculation
+    const payAmount = parseFloat(formData.get('payAmount')) || 0;
+    const payFrequency = formData.get('payFrequency');
+    const hoursPerDay = parseFloat(formData.get('hoursPerDay')) || 8;
+    const daysPerWeek = parseFloat(formData.get('daysPerWeek')) || 5;
+    const weeksPerYear = parseFloat(formData.get('weeksPerYear')) || 50;
+
+    if (payAmount <= 0) {
+      return;
+    }
+
+    // Calculate base annual income
+    let annualIncome = 0;
+    switch (payFrequency) {
+      case 'hour':
+        annualIncome = payAmount * hoursPerDay * daysPerWeek * weeksPerYear;
+        break;
+      case 'day':
+        annualIncome = payAmount * daysPerWeek * weeksPerYear;
+        break;
+      case 'week':
+        annualIncome = payAmount * weeksPerYear;
+        break;
+      case 'month':
+        annualIncome = payAmount * 12;
+        break;
+      case 'year':
+        annualIncome = payAmount;
+        break;
+    }
+
+    // Additional income calculations
+    const bonusAmount = parseFloat(formData.get('bonusAmount')) || 0;
+    const overtimeHours = parseFloat(formData.get('overtimeHours')) || 0;
+    const commissionRate = parseFloat(formData.get('commissionRate')) || 0;
+    const commissionBase = parseFloat(formData.get('commissionBase')) || 0;
+
+    // Calculate overtime (time and a half)
+    const overtimeIncome = payFrequency === 'hour' ?
+      (payAmount * 1.5 * overtimeHours * weeksPerYear) : 0;
+
+    // Calculate commission
+    const commissionIncome = (commissionBase * commissionRate) / 100;
+
+    // Total gross income
+    const totalGrossIncome = annualIncome + bonusAmount + overtimeIncome + commissionIncome;
+
+    // Pre-tax deductions
+    const healthInsurance = (parseFloat(formData.get('healthInsurance')) || 0) * 12;
+    const retirement401k = (parseFloat(formData.get('retirement401k')) || 0) * 12;
+    const otherDeductions = (parseFloat(formData.get('otherDeductions')) || 0) * 12;
+    const totalDeductions = healthInsurance + retirement401k + otherDeductions;
+
+    // Taxable income
+    const taxableIncome = totalGrossIncome - totalDeductions;
+
+    // Basic tax calculation (simplified)
+    const filingStatus = formData.get('filingStatus') || 'single';
+    const taxes = calculateSimplifiedTaxes(taxableIncome, filingStatus);
+
+    // Net income
+    const netIncome = taxableIncome - taxes.total;
+
+    // Update the results display
+    displayEnhancedResults({
+      grossIncome: totalGrossIncome,
+      baseIncome: annualIncome,
+      bonus: bonusAmount,
+      overtime: overtimeIncome,
+      commission: commissionIncome,
+      deductions: totalDeductions,
+      taxableIncome: taxableIncome,
+      taxes: taxes,
+      netIncome: netIncome
+    });
+  }
+
+  // Simplified tax calculation
+  function calculateSimplifiedTaxes(income, filingStatus) {
+    // 2024 Tax Brackets (simplified)
+    const brackets = {
+      single: [
+        { min: 0, max: 11000, rate: 0.10 },
+        { min: 11000, max: 44725, rate: 0.12 },
+        { min: 44725, max: 95375, rate: 0.22 },
+        { min: 95375, max: 182050, rate: 0.24 },
+        { min: 182050, max: 231250, rate: 0.32 },
+        { min: 231250, max: 578125, rate: 0.35 },
+        { min: 578125, max: Infinity, rate: 0.37 }
+      ]
+    };
+
+    const bracketData = brackets[filingStatus] || brackets.single;
+    let federalTax = 0;
+
+    for (const bracket of bracketData) {
+      if (income > bracket.min) {
+        const taxableAtBracket = Math.min(income, bracket.max) - bracket.min;
+        federalTax += taxableAtBracket * bracket.rate;
+      }
+    }
+
+    // FICA taxes
+    const socialSecurity = Math.min(income * 0.062, 160200 * 0.062); // 2024 SS wage base
+    const medicare = income * 0.0145;
+
+    // Estimated state tax (5% average)
+    const stateTax = income * 0.05;
+
+    return {
+      federal: federalTax,
+      socialSecurity: socialSecurity,
+      medicare: medicare,
+      state: stateTax,
+      total: federalTax + socialSecurity + medicare + stateTax
+    };
+  }
+
+  // Display enhanced results
+  function displayEnhancedResults(data) {
+    const resultsContainer = document.getElementById('results');
+    if (!resultsContainer) return;
+
+    const monthly = {
+      gross: data.grossIncome / 12,
+      net: data.netIncome / 12,
+      taxes: data.taxes.total / 12
+    };
+
+    const weekly = {
+      gross: data.grossIncome / 52,
+      net: data.netIncome / 52,
+      taxes: data.taxes.total / 52
+    };
+
+    resultsContainer.innerHTML = `
+      <div class="results-card">
+        <div class="income-summary-grid">
+          <div class="income-metric">
+            <div class="income-metric-value">${toCurrency(data.grossIncome)}</div>
+            <div class="income-metric-label">Annual Gross</div>
+          </div>
+          <div class="income-metric">
+            <div class="income-metric-value">${toCurrency(data.netIncome)}</div>
+            <div class="income-metric-label">Annual Net</div>
+          </div>
+          <div class="income-metric">
+            <div class="income-metric-value">${toCurrency(monthly.net)}</div>
+            <div class="income-metric-label">Monthly Net</div>
+          </div>
+          <div class="income-metric">
+            <div class="income-metric-value">${toCurrency(weekly.net)}</div>
+            <div class="income-metric-label">Weekly Net</div>
+          </div>
+        </div>
+
+        ${data.bonus > 0 || data.overtime > 0 || data.commission > 0 ? `
+          <div class="income-breakdown mb-4">
+            <h4 class="text-sm font-medium mb-2">Income Breakdown</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="tax-label-enhanced">Base Income</span>
+                <span class="tax-amount-enhanced">${toCurrency(data.baseIncome)}</span>
+              </div>
+              ${data.bonus > 0 ? `
+                <div class="flex justify-between">
+                  <span class="tax-label-enhanced">Annual Bonus</span>
+                  <span class="tax-amount-enhanced">${toCurrency(data.bonus)}</span>
+                </div>
+              ` : ''}
+              ${data.overtime > 0 ? `
+                <div class="flex justify-between">
+                  <span class="tax-label-enhanced">Overtime Income</span>
+                  <span class="tax-amount-enhanced">${toCurrency(data.overtime)}</span>
+                </div>
+              ` : ''}
+              ${data.commission > 0 ? `
+                <div class="flex justify-between">
+                  <span class="tax-label-enhanced">Commission Income</span>
+                  <span class="tax-amount-enhanced">${toCurrency(data.commission)}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="tax-breakdown-enhanced">
+          <h4>Tax & Deduction Breakdown</h4>
+          <div class="space-y-1">
+            ${data.deductions > 0 ? `
+              <div class="tax-item-enhanced">
+                <span class="tax-label-enhanced">Pre-tax Deductions</span>
+                <span class="tax-amount-enhanced">-${toCurrency(data.deductions)}</span>
+              </div>
+              <div class="tax-item-enhanced">
+                <span class="tax-label-enhanced">Taxable Income</span>
+                <span class="tax-amount-enhanced">${toCurrency(data.taxableIncome)}</span>
+              </div>
+            ` : ''}
+            <div class="tax-item-enhanced">
+              <span class="tax-label-enhanced">Federal Tax</span>
+              <span class="tax-amount-enhanced">-${toCurrency(data.taxes.federal)}</span>
+            </div>
+            <div class="tax-item-enhanced">
+              <span class="tax-label-enhanced">Social Security</span>
+              <span class="tax-amount-enhanced">-${toCurrency(data.taxes.socialSecurity)}</span>
+            </div>
+            <div class="tax-item-enhanced">
+              <span class="tax-label-enhanced">Medicare</span>
+              <span class="tax-amount-enhanced">-${toCurrency(data.taxes.medicare)}</span>
+            </div>
+            <div class="tax-item-enhanced">
+              <span class="tax-label-enhanced">State Tax (Est.)</span>
+              <span class="tax-amount-enhanced">-${toCurrency(data.taxes.state)}</span>
+            </div>
+            <div class="tax-item-enhanced total">
+              <span class="tax-label-enhanced">Total Taxes</span>
+              <span class="tax-amount-enhanced">-${toCurrency(data.taxes.total)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Update dashboard metrics
+    updateDashboardMetric('metric-income', toCurrency(monthly.net));
+  }
+
+  // Debounce function for performance
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Initialize enhanced calculator when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeEnhancedIncomeCalculator);
+  } else {
+    initializeEnhancedIncomeCalculator();
+  }
 });

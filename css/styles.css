@@ -1108,3 +1108,165 @@ body::after {
     font-size: 1rem;
   }
 }
+
+/* ============================================================================
+   ENHANCED INCOME CALCULATOR STYLES
+   ============================================================================ */
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 12px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.input-group input {
+  padding-left: 32px !important;
+}
+
+.work-schedule-section,
+.additional-income-section,
+.deductions-section {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.additional-income-section h3,
+.deductions-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-section {
+  font-size: 0.75rem;
+  color: hsl(var(--primary));
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.toggle-section:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.results-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.results-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 16px 64px 0 rgba(31, 38, 135, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+.income-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.income-metric {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.income-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.income-metric-label {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.tax-breakdown-enhanced {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tax-breakdown-enhanced h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.tax-item-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tax-item-enhanced:last-child {
+  border-bottom: none;
+}
+
+.tax-item-enhanced.total {
+  border-top: 2px solid hsl(var(--primary));
+  margin-top: 1rem;
+  padding-top: 1rem;
+  font-weight: 600;
+}
+
+.tax-label-enhanced {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+.tax-amount-enhanced {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive adjustments for enhanced calculator */
+@media (max-width: 768px) {
+  .income-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .work-schedule-section,
+  .additional-income-section,
+  .deductions-section {
+    padding: 0.75rem;
+  }
+
+  .results-card {
+    padding: 1rem;
+  }
+}

@@ -476,16 +476,6 @@
         </div>
       </div>
 
-      <!-- Budget Summary Section (shown when budget is calculated) -->
-      <div class="dashboard-section budget-summary-section" id="budget-summary-section" style="display: none;">
-        <div class="section-header">
-          <h3>Budget Summary</h3>
-          <span class="section-subtitle">Your latest budget analysis</span>
-        </div>
-        <div id="budget-summary-content">
-          <!-- Budget summary will be populated by JavaScript -->
-        </div>
-      </div>
 
       <!-- Two Column Layout for Recommendations and Actions -->
       <div class="dashboard-grid">
@@ -603,58 +593,160 @@
     <!-- Income Calculator Tab -->
     <section class="tab-content" id="income-tab" aria-labelledby="calc-title">
       <div class="card">
-        <h2 id="calc-title">Income Calculator</h2>
-        
-        <!-- Income Calculator Form -->
-        <form id="income-form" class="grid">
-          <!-- Pay Amount Input -->
-          <div class="field">
-            <label for="pay-amount">Pay amount</label>
-            <input id="pay-amount" name="payAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g., 25" required>
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Enhanced Calculator Form -->
+          <div class="flex-1">
+            <h2 id="calc-title" class="text-xl font-semibold mb-4">Advanced Income Calculator</h2>
+
+            <form id="income-form" class="space-y-4">
+              <!-- Primary Income Section -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field">
+                  <label for="pay-amount">Pay Amount</label>
+                  <div class="input-group">
+                    <span class="input-prefix">$</span>
+                    <input id="pay-amount" name="payAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="25.00" required>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="pay-frequency">Pay Frequency</label>
+                  <select id="pay-frequency" name="payFrequency" required>
+                    <option value="hour">Per Hour</option>
+                    <option value="day">Per Day</option>
+                    <option value="week">Per Week</option>
+                    <option value="month">Per Month</option>
+                    <option value="year">Per Year</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Work Schedule Section -->
+              <div class="work-schedule-section" id="work-schedule">
+                <h3 class="text-sm font-medium text-muted-foreground mb-2">Work Schedule</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div class="field" id="hours-per-day-field">
+                    <label for="hours-per-day">Hours/Day</label>
+                    <input id="hours-per-day" name="hoursPerDay" type="number" step="0.1" min="0" max="24" placeholder="8.0">
+                  </div>
+                  <div class="field" id="days-per-week-field">
+                    <label for="days-per-week">Days/Week</label>
+                    <input id="days-per-week" name="daysPerWeek" type="number" step="0.1" min="0" max="7" placeholder="5.0">
+                  </div>
+                  <div class="field" id="weeks-per-year-field">
+                    <label for="weeks-per-year">Weeks/Year</label>
+                    <input id="weeks-per-year" name="weeksPerYear" type="number" step="0.1" min="0" max="52" placeholder="50.0">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Income Section -->
+              <div class="additional-income-section">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-muted-foreground">Additional Income</h3>
+                  <button type="button" id="toggle-additional" class="text-xs text-primary cursor-pointer">+ Add</button>
+                </div>
+                <div id="additional-income-fields" class="hidden space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="field">
+                      <label for="bonus-amount">Annual Bonus</label>
+                      <div class="input-group">
+                        <span class="input-prefix">$</span>
+                        <input id="bonus-amount" name="bonusAmount" type="number" step="0.01" min="0" placeholder="5000">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="overtime-hours">Overtime Hours/Week</label>
+                      <input id="overtime-hours" name="overtimeHours" type="number" step="0.1" min="0" placeholder="5.0">
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="field">
+                      <label for="commission-rate">Commission Rate (%)</label>
+                      <input id="commission-rate" name="commissionRate" type="number" step="0.1" min="0" max="100" placeholder="3.0">
+                    </div>
+                    <div class="field">
+                      <label for="commission-base">Commission Base</label>
+                      <div class="input-group">
+                        <span class="input-prefix">$</span>
+                        <input id="commission-base" name="commissionBase" type="number" step="0.01" min="0" placeholder="100000">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Location & Tax Section -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field">
+                  <label for="zipcode">ZIP Code</label>
+                  <input id="zipcode" name="zipcode" type="text" pattern="[0-9]{5}(-[0-9]{4})?" placeholder="12345" required>
+                </div>
+                <div class="field">
+                  <label for="filing-status">Filing Status</label>
+                  <select id="filing-status" name="filingStatus">
+                    <option value="single">Single</option>
+                    <option value="married-jointly">Married Filing Jointly</option>
+                    <option value="married-separately">Married Filing Separately</option>
+                    <option value="head-of-household">Head of Household</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Deductions Section -->
+              <div class="deductions-section">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-muted-foreground">Pre-Tax Deductions</h3>
+                  <button type="button" id="toggle-deductions" class="text-xs text-primary cursor-pointer">+ Add</button>
+                </div>
+                <div id="deduction-fields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div class="field">
+                    <label for="health-insurance">Health Insurance</label>
+                    <div class="input-group">
+                      <span class="input-prefix">$</span>
+                      <input id="health-insurance" name="healthInsurance" type="number" step="0.01" min="0" placeholder="200">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="retirement-401k">401(k) Contribution</label>
+                    <div class="input-group">
+                      <span class="input-prefix">$</span>
+                      <input id="retirement-401k" name="retirement401k" type="number" step="0.01" min="0" placeholder="500">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="other-deductions">Other Deductions</label>
+                    <div class="input-group">
+                      <span class="input-prefix">$</span>
+                      <input id="other-deductions" name="otherDeductions" type="number" step="0.01" min="0" placeholder="100">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="flex gap-3 pt-4">
+                <button type="submit" class="btn-primary flex-1">Calculate Income</button>
+                <button type="button" id="reset-btn" class="btn-secondary">Reset</button>
+              </div>
+            </form>
           </div>
-          
-          <!-- Pay Frequency Selection -->
-          <div class="field">
-            <label for="pay-frequency">Pay frequency</label>
-            <select id="pay-frequency" name="payFrequency" required>
-              <option value="hour">Per hour</option>
-              <option value="day">Per day</option>
-              <option value="week">Per week</option>
-              <option value="month">Per month</option>
-              <option value="year">Per year</option>
-            </select>
+
+          <!-- Real-time Results Display -->
+          <div class="flex-1">
+            <div class="sticky top-4">
+              <h3 class="text-xl font-semibold mb-4">Income Breakdown</h3>
+              <div id="results" class="results space-y-4" aria-live="polite">
+                <div class="text-center text-muted-foreground py-8">
+                  <svg class="mx-auto h-12 w-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                  </svg>
+                  <p>Enter your income details to see breakdown</p>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <!-- Work Schedule Fields (shown/hidden based on frequency) -->
-          <div class="field" id="hours-per-day-field">
-            <label for="hours-per-day">Hours per day</label>
-            <input id="hours-per-day" name="hoursPerDay" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 8">
-          </div>
-          <div class="field" id="days-per-week-field">
-            <label for="days-per-week">Days per week</label>
-            <input id="days-per-week" name="daysPerWeek" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 5">
-          </div>
-          <div class="field" id="weeks-per-year-field">
-            <label for="weeks-per-year">Weeks per year</label>
-            <input id="weeks-per-year" name="weeksPerYear" type="number" inputmode="decimal" step="0.1" min="0" placeholder="e.g., 52">
-          </div>
-          
-          <!-- ZIP Code for Tax Calculation -->
-          <div class="field">
-            <label for="zipcode">ZIP Code</label>
-            <input id="zipcode" name="zipcode" type="text" pattern="[0-9]{5}(-[0-9]{4})?" placeholder="e.g., 12345" required>
-          </div>
-          
-          <!-- Form Actions -->
-          <div class="actions">
-            <button type="submit" class="btn-primary">Calculate</button>
-            <button type="button" id="reset-btn" class="btn-secondary">Reset</button>
-          </div>
-        </form>
-        
-        <!-- Results Display Area -->
-        <!-- Populated from JavaScript; aria-live ensures screen readers announce recalculated figures -->
-        <div id="results" class="results" aria-live="polite"></div>
+        </div>
       </div>
     </section>
 
