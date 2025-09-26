@@ -51,7 +51,8 @@ class UIUtils {
       { id: 'debt-form', handler: this.handleDebtSubmit.bind(this) },
       { id: 'emergency-form', handler: this.handleEmergencySubmit.bind(this) },
       { id: 'goals-form', handler: this.handleGoalsSubmit.bind(this) },
-      { id: 'investment-form', handler: this.handleInvestmentSubmit.bind(this) }
+      { id: 'investment-form', handler: this.handleInvestmentSubmit.bind(this) },
+      { id: 'ai-chat-form', handler: this.handleAIChatSubmit.bind(this) }
     ];
 
     forms.forEach(({ id, handler }) => {
@@ -332,6 +333,16 @@ class UIUtils {
     if (window.dataManager) {
       window.dataManager.showNotification(message, 'success');
     }
+  }
+
+  /**
+   * Handle AI chat form submission
+   */
+  handleAIChatSubmit(event) {
+    event.preventDefault();
+    // The AI chat functionality is handled by the AIAssistant class
+    // This method is here to prevent the form from submitting normally
+    return false;
   }
 
   // Placeholder methods for other form handlers

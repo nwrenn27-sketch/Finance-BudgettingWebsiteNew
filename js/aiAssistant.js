@@ -1,6 +1,7 @@
 /**
  * AI Financial Assistant Module
  * Handles AI chat functionality, API integration, and financial context
+ * Enhanced with real-time market data and Gemini AI integration
  */
 
 class AIAssistant {
@@ -14,6 +15,8 @@ class AIAssistant {
     this.elements = {};
     this.messageHistory = [];
     this.isInitialized = false;
+    this.isTyping = false;
+    this.financialData = null;
 
     this.init();
   }
@@ -27,6 +30,7 @@ class AIAssistant {
     this.cacheElements();
     this.loadApiKey();
     this.attachEventListeners();
+    this.loadChatHistory();
     this.updateStatus();
 
     this.isInitialized = true;
@@ -37,11 +41,12 @@ class AIAssistant {
    */
   cacheElements() {
     this.elements = {
-      chatInput: document.getElementById('chat-input'),
-      sendButton: document.getElementById('send-message'),
-      clearButton: document.getElementById('clear-chat'),
+      chatInput: document.getElementById('ai-message-input'),
+      sendButton: document.querySelector('.send-button'),
+      clearButton: document.getElementById('clear-chat-btn'),
       chatMessages: document.getElementById('chat-messages'),
-      quickPromptButtons: document.querySelectorAll('.quick-prompt-btn'),
+      chatForm: document.getElementById('ai-chat-form'),
+      suggestionChips: document.querySelectorAll('.suggestion-chip'),
       apiKeyInput: document.getElementById('gemini-api-key'),
       saveApiKeyButton: document.getElementById('save-api-key'),
       apiKeySetup: document.getElementById('api-key-setup'),
@@ -59,8 +64,6 @@ class AIAssistant {
       if (this.elements.apiKeySetup) {
         this.elements.apiKeySetup.style.display = 'none';
       }
-    } else if (this.elements.apiKeySetup) {
-      this.elements.apiKeySetup.style.display = 'block';
     }
   }
 
@@ -68,25 +71,33 @@ class AIAssistant {
    * Attach event listeners
    */
   attachEventListeners() {
+    // Chat form submission
+    if (this.elements.chatForm) {
+      this.elements.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+    }
+
     // Chat input events
     if (this.elements.chatInput && this.elements.sendButton) {
-      this.elements.chatInput.addEventListener('input', () => this.handleInputChange());
-      this.elements.chatInput.addEventListener('keypress', (e) => this.handleKeyPress(e));
-      this.elements.sendButton.addEventListener('click', () => this.sendMessage());
+      this.elements.chatInput.addEventListener('input', () => this.updateSendButton());
+      this.elements.chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.handleSubmit(e);
+        }
+      });
     }
 
     // Clear chat button
     if (this.elements.clearButton) {
-      this.elements.clearButton.addEventListener('click', () => this.clearChat());
+      this.elements.clearButton.addEventListener('click', () => this.clearChatHistory());
     }
 
-    // Quick prompt buttons
-    this.elements.quickPromptButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const prompt = button.getAttribute('data-prompt');
-        if (prompt && this.elements.chatInput) {
-          this.elements.chatInput.value = prompt;
-          this.sendMessage();
+    // Suggestion chips
+    this.elements.suggestionChips.forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        const suggestion = e.target.getAttribute('data-suggestion');
+        if (suggestion) {
+          this.sendMessage(suggestion);
         }
       });
     });
@@ -101,23 +112,16 @@ class AIAssistant {
   }
 
   /**
-   * Handle input changes
+   * Handle form submission
    */
-  handleInputChange() {
-    if (!this.elements.chatInput || !this.elements.sendButton) return;
+  handleSubmit(e) {
+    e.preventDefault();
+    const message = this.elements.chatInput.value.trim();
 
-    const hasText = this.elements.chatInput.value.trim().length > 0;
-    const hasApiKey = this.config.apiKey !== null;
-    this.elements.sendButton.disabled = !hasText || !hasApiKey;
-  }
-
-  /**
-   * Handle keypress events
-   */
-  handleKeyPress(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
+    if (message) {
+      this.sendMessage(message);
+      this.elements.chatInput.value = '';
+      this.updateSendButton();
     }
   }
 
@@ -138,24 +142,17 @@ class AIAssistant {
 
       this.updateStatus('Ready');
       this.showNotification('API key saved successfully!', 'success');
-      this.handleInputChange();
+      this.updateSendButton();
     }
   }
 
   /**
    * Send message to AI
    */
-  async sendMessage() {
-    if (!this.elements.chatInput || !this.config.apiKey) return;
+  async sendMessage(message) {
+    if (!message.trim()) return;
 
-    const message = this.elements.chatInput.value.trim();
-    if (!message) return;
-
-    // Clear input and update UI
-    this.elements.chatInput.value = '';
-    this.handleInputChange();
-
-    // Add user message
+    // Add user message to chat
     this.addMessage(message, 'user');
     this.showTypingIndicator();
 
@@ -163,13 +160,13 @@ class AIAssistant {
       // Get financial context and market data
       const [financialContext, marketData] = await Promise.all([
         this.getFinancialContext(),
-        MarketDataService.getRelevantMarketData(message)
+        MarketDataService ? MarketDataService.getRelevantMarketData(message) : null
       ]);
 
       // Generate AI response
       const response = await this.generateResponse(message, financialContext, marketData);
 
-      this.removeTypingIndicator();
+      this.hideTypingIndicator();
       this.addMessage(response, 'ai');
 
       // Update message history
@@ -177,7 +174,7 @@ class AIAssistant {
 
     } catch (error) {
       console.error('AI Assistant Error:', error);
-      this.removeTypingIndicator();
+      this.hideTypingIndicator();
       this.addMessage('I apologize, but I encountered an error. Please try again or check your API key.', 'ai');
     }
   }
@@ -191,35 +188,27 @@ class AIAssistant {
     const messageDiv = document.createElement('div');
     messageDiv.className = `${sender}-message`;
 
-    const isUser = sender === 'user';
-    messageDiv.innerHTML = this.createMessageHTML(content, isUser);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    messageDiv.innerHTML = `
+      <div class="message-avatar">
+        ${sender === 'ai' ? this.getAIIcon() : this.getUserIcon()}
+      </div>
+      <div class="message-content">
+        <div class="message-header">
+          <span class="message-sender">${sender === 'ai' ? 'AI Assistant' : 'You'}</span>
+          <span class="message-time">${time}</span>
+        </div>
+        <div class="message-text">${this.formatMessage(content)}</div>
+      </div>
+    `;
 
     this.elements.chatMessages.appendChild(messageDiv);
     this.scrollToBottom();
-  }
 
-  /**
-   * Create message HTML
-   */
-  createMessageHTML(content, isUser) {
-    const avatarIcon = isUser ?
-      this.getUserIcon() :
-      this.getAIIcon();
-
-    return `
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <svg class="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${avatarIcon}
-          </svg>
-        </div>
-        <div class="flex-1">
-          <div class="bg-background rounded-lg p-3 border border-border">
-            ${this.formatMessage(content)}
-          </div>
-        </div>
-      </div>
-    `;
+    // Save to chat history
+    this.messageHistory.push({ content, sender, timestamp: new Date() });
+    this.saveChatHistory();
   }
 
   /**
@@ -240,61 +229,43 @@ class AIAssistant {
     if (!this.elements.chatMessages) return;
 
     const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
     typingDiv.id = 'typing-indicator';
-    typingDiv.className = 'ai-message';
-    typingDiv.innerHTML = this.createTypingIndicatorHTML();
+    typingDiv.innerHTML = `
+      <div class="message-avatar">
+        ${this.getAIIcon()}
+      </div>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    `;
 
     this.elements.chatMessages.appendChild(typingDiv);
     this.scrollToBottom();
+    this.isTyping = true;
   }
 
   /**
-   * Create typing indicator HTML
+   * Hide typing indicator
    */
-  createTypingIndicatorHTML() {
-    return `
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <svg class="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${this.getAIIcon()}
-          </svg>
-        </div>
-        <div class="flex-1">
-          <div class="typing-indicator">
-            <span class="text-xs text-muted-foreground">AI is thinking</span>
-            <div class="typing-dots">
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Remove typing indicator
-   */
-  removeTypingIndicator() {
-    const indicator = document.getElementById('typing-indicator');
-    if (indicator) indicator.remove();
-  }
-
-  /**
-   * Clear chat history
-   */
-  clearChat() {
-    if (!this.elements.chatMessages) return;
-
-    const welcomeMessage = this.elements.chatMessages.querySelector('.ai-message');
-    this.elements.chatMessages.innerHTML = '';
-
-    if (welcomeMessage) {
-      this.elements.chatMessages.appendChild(welcomeMessage);
+  hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+      typingIndicator.remove();
     }
+    this.isTyping = false;
+  }
 
-    this.messageHistory = [];
+  /**
+   * Update send button state
+   */
+  updateSendButton() {
+    if (!this.elements.chatInput || !this.elements.sendButton) return;
+
+    const hasText = this.elements.chatInput.value.trim().length > 0;
+    this.elements.sendButton.disabled = !hasText || this.isTyping;
   }
 
   /**
@@ -341,17 +312,16 @@ class AIAssistant {
    */
   async generateResponse(userMessage, financialContext, marketData) {
     if (!this.config.apiKey) {
-      return "Please configure your Gemini API key to use the AI assistant.";
+      return "To get personalized AI advice, please set up your free Gemini API key in the settings. For now, here's some general financial guidance: " + this.getGeneralAdvice(userMessage, financialContext);
     }
 
     try {
       const prompt = this.buildPrompt(userMessage, financialContext, marketData);
       const response = await this.callGeminiAPI(prompt);
-
       return this.formatAIResponse(response, marketData);
     } catch (error) {
       console.error('AI Response Error:', error);
-      return this.getFallbackResponse(marketData);
+      return this.getFallbackResponse(userMessage, financialContext, marketData);
     }
   }
 
@@ -445,17 +415,42 @@ User's Financial Context:`;
   /**
    * Get fallback response
    */
-  getFallbackResponse(marketData) {
+  getFallbackResponse(userMessage, financialContext, marketData) {
     let response = "I'm having trouble connecting to the AI service right now. ";
 
     if (marketData && Object.keys(marketData).length > 0) {
       response += "However, here's the current market data you requested:";
       response += this.formatMarketDataDisplay(marketData);
     } else {
-      response += "Please try again later or check your API key configuration.";
+      response += "Here's some general advice: " + this.getGeneralAdvice(userMessage, financialContext);
     }
 
     return response;
+  }
+
+  /**
+   * Get general financial advice
+   */
+  getGeneralAdvice(message, financialContext) {
+    const lowerMessage = message.toLowerCase();
+
+    if (lowerMessage.includes('budget') || lowerMessage.includes('spending')) {
+      return "Follow the 50/30/20 rule: 50% for needs, 30% for wants, 20% for savings and debt repayment.";
+    }
+
+    if (lowerMessage.includes('invest') || lowerMessage.includes('stock')) {
+      return "Start with low-cost index funds, diversify your portfolio, and invest consistently for the long term.";
+    }
+
+    if (lowerMessage.includes('debt') || lowerMessage.includes('pay off')) {
+      return "Use either debt avalanche (highest interest first) or debt snowball (smallest balance first) strategies.";
+    }
+
+    if (lowerMessage.includes('emergency') || lowerMessage.includes('savings')) {
+      return "Aim for 3-6 months of expenses in a high-yield savings account for emergencies.";
+    }
+
+    return "Focus on the basics: spend less than you earn, build an emergency fund, pay off high-interest debt, and invest for the long term.";
   }
 
   /**
@@ -464,9 +459,73 @@ User's Financial Context:`;
   updateMessageHistory(userMessage, aiResponse) {
     this.messageHistory.push({ user: userMessage, ai: aiResponse, timestamp: Date.now() });
 
-    // Keep only recent messages
     if (this.messageHistory.length > this.config.maxMessagesHistory) {
       this.messageHistory = this.messageHistory.slice(-this.config.maxMessagesHistory);
+    }
+  }
+
+  /**
+   * Save chat history to localStorage
+   */
+  saveChatHistory() {
+    try {
+      localStorage.setItem('ai-chat-history', JSON.stringify(this.messageHistory));
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
+  }
+
+  /**
+   * Load chat history from localStorage
+   */
+  loadChatHistory() {
+    try {
+      const saved = localStorage.getItem('ai-chat-history');
+      if (saved) {
+        this.messageHistory = JSON.parse(saved);
+        if (this.messageHistory.length > 50) {
+          this.messageHistory = this.messageHistory.slice(-50);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      this.messageHistory = [];
+    }
+  }
+
+  /**
+   * Clear chat history
+   */
+  clearChatHistory() {
+    this.messageHistory = [];
+    localStorage.removeItem('ai-chat-history');
+
+    if (this.elements.chatMessages) {
+      this.elements.chatMessages.innerHTML = `
+        <div class="ai-message">
+          <div class="message-avatar">
+            ${this.getAIIcon()}
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-sender">AI Assistant</span>
+              <span class="message-time">Just now</span>
+            </div>
+            <div class="message-text">
+              Hello! I'm your AI financial assistant. I can help you with:
+              <ul class="mt-2 space-y-1 text-sm">
+                <li>• Budget planning and optimization</li>
+                <li>• Investment strategies and recommendations</li>
+                <li>• Debt payoff strategies</li>
+                <li>• Emergency fund planning</li>
+                <li>• Financial goal setting</li>
+                <li>• Tax planning basics</li>
+              </ul>
+              What would you like to know about your finances?
+            </div>
+          </div>
+        </div>
+      `;
     }
   }
 
@@ -502,17 +561,22 @@ User's Financial Context:`;
   }
 
   /**
-   * Get user icon SVG
-   */
-  getUserIcon() {
-    return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>';
-  }
-
-  /**
    * Get AI icon SVG
    */
   getAIIcon() {
-    return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>';
+    return `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+    </svg>`;
+  }
+
+  /**
+   * Get user icon SVG
+   */
+  getUserIcon() {
+    return `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>`;
   }
 }
 
