@@ -2356,6 +2356,13 @@
     `;
 
   if (investmentResultsEl) investmentResultsEl.innerHTML = resultsHTML;
+
+    // Show and create charts
+    const chartsContainer = document.getElementById('investment-charts');
+    if (chartsContainer) {
+      chartsContainer.style.display = 'block';
+      createInvestmentCharts(recommendations, amount, risk, timeframe);
+    }
   }
 
   /**
@@ -2380,6 +2387,440 @@
     if (apiStatusEl) {
       apiStatusEl.style.display = 'none';
     }
+
+    // Hide charts
+    const chartsContainer = document.getElementById('investment-charts');
+    if (chartsContainer) {
+      chartsContainer.style.display = 'none';
+    }
+
+    // Destroy existing charts
+    destroyInvestmentCharts();
+  }
+
+  // Chart instances to track for cleanup
+  let investmentCharts = {
+    allocation: null,
+    sector: null,
+    performance: null,
+    growth: null
+  };
+
+  /**
+   * Creates visual charts for investment recommendations
+   * @param {Array} recommendations - Investment recommendations
+   * @param {number} amount - Monthly investment amount
+   * @param {string} risk - Risk tolerance
+   * @param {string} timeframe - Investment timeframe
+   */
+  function createInvestmentCharts(recommendations, amount, risk, timeframe) {
+    // Destroy existing charts first
+    destroyInvestmentCharts();
+
+    // Create portfolio allocation chart
+    createAllocationChart(recommendations, amount);
+
+    // Create sector diversification chart
+    createSectorChart(recommendations);
+
+    // Create performance overview chart
+    createPerformanceChart(recommendations, risk);
+
+    // Create growth projection chart
+    createGrowthChart(amount, timeframe);
+  }
+
+  /**
+   * Creates portfolio allocation pie chart
+   */
+  function createAllocationChart(recommendations, amount) {
+    const ctx = document.getElementById('allocationChart');
+    if (!ctx) return;
+
+    const labels = recommendations.map(rec => rec.symbol);
+    const allocation = 100 / recommendations.length;
+    const data = recommendations.map(() => allocation);
+    const monthlyAllocation = recommendations.map(() => amount / recommendations.length);
+
+    const colors = [
+      'rgba(99, 102, 241, 0.8)',
+      'rgba(168, 85, 247, 0.8)',
+      'rgba(236, 72, 153, 0.8)',
+      'rgba(245, 101, 101, 0.8)',
+      'rgba(251, 191, 36, 0.8)',
+      'rgba(34, 197, 94, 0.8)',
+      'rgba(14, 165, 233, 0.8)'
+    ];
+
+    investmentCharts.allocation = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors.slice(0, recommendations.length),
+          borderColor: colors.slice(0, recommendations.length).map(color => color.replace('0.8', '1')),
+          borderWidth: 2,
+          hoverBorderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#ffffff',
+              padding: 20,
+              usePointStyle: true,
+              font: {
+                size: 12
+              },
+              generateLabels: function(chart) {
+                const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                const labels = original.call(this, chart);
+
+                labels.forEach((label, index) => {
+                  label.text = `${label.text} (${allocation.toFixed(1)}% - $${monthlyAllocation[index].toFixed(0)}/mo)`;
+                });
+
+                return labels;
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed;
+                const monthlyAmount = monthlyAllocation[context.dataIndex];
+                return `${label}: ${value.toFixed(1)}% ($${monthlyAmount.toFixed(0)}/month)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Creates sector diversification chart
+   */
+  function createSectorChart(recommendations) {
+    const ctx = document.getElementById('sectorChart');
+    if (!ctx) return;
+
+    // Group by sector
+    const sectorMap = {};
+    recommendations.forEach(rec => {
+      const sector = rec.sector || 'Other';
+      sectorMap[sector] = (sectorMap[sector] || 0) + 1;
+    });
+
+    const labels = Object.keys(sectorMap);
+    const data = Object.values(sectorMap);
+    const percentages = data.map(count => (count / recommendations.length) * 100);
+
+    const colors = [
+      'rgba(34, 197, 94, 0.8)',
+      'rgba(99, 102, 241, 0.8)',
+      'rgba(245, 101, 101, 0.8)',
+      'rgba(251, 191, 36, 0.8)',
+      'rgba(168, 85, 247, 0.8)',
+      'rgba(14, 165, 233, 0.8)'
+    ];
+
+    investmentCharts.sector = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: percentages,
+          backgroundColor: colors.slice(0, labels.length),
+          borderColor: colors.slice(0, labels.length).map(color => color.replace('0.8', '1')),
+          borderWidth: 2,
+          hoverBorderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#ffffff',
+              padding: 20,
+              usePointStyle: true,
+              font: {
+                size: 12
+              },
+              generateLabels: function(chart) {
+                const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                const labels = original.call(this, chart);
+
+                labels.forEach((label, index) => {
+                  label.text = `${label.text} (${percentages[index].toFixed(1)}%)`;
+                });
+
+                return labels;
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed;
+                const count = data[context.dataIndex];
+                return `${label}: ${value.toFixed(1)}% (${count} investment${count > 1 ? 's' : ''})`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Creates performance overview bar chart
+   */
+  function createPerformanceChart(recommendations, risk) {
+    const ctx = document.getElementById('performanceChart');
+    if (!ctx) return;
+
+    // Simulated expected returns based on risk tolerance and asset type
+    const expectedReturns = recommendations.map(rec => {
+      let baseReturn = 7; // Base 7% return
+
+      // Adjust based on risk tolerance
+      if (risk === 'conservative') baseReturn = 5;
+      else if (risk === 'aggressive') baseReturn = 9;
+
+      // Adjust based on asset type
+      if (rec.type === 'etf') baseReturn += 1;
+      else if (rec.type === 'reit') baseReturn += 2;
+
+      // Add some variation
+      return baseReturn + (Math.random() * 2 - 1);
+    });
+
+    const riskLevels = recommendations.map(rec => {
+      if (rec.type === 'etf') return Math.random() * 0.3 + 0.1; // Lower risk
+      else if (rec.type === 'reit') return Math.random() * 0.4 + 0.2; // Medium risk
+      else return Math.random() * 0.5 + 0.15; // Variable risk
+    });
+
+    investmentCharts.performance = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Expected Performance',
+          data: recommendations.map((rec, index) => ({
+            x: riskLevels[index] * 100,
+            y: expectedReturns[index],
+            label: rec.symbol
+          })),
+          backgroundColor: 'rgba(99, 102, 241, 0.6)',
+          borderColor: 'rgba(99, 102, 241, 1)',
+          borderWidth: 2,
+          pointRadius: 8,
+          pointHoverRadius: 12
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            callbacks: {
+              title: function(context) {
+                return context[0].raw.label;
+              },
+              label: function(context) {
+                return `Expected Return: ${context.parsed.y.toFixed(1)}%\nRisk Level: ${context.parsed.x.toFixed(1)}%`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Risk Level (%)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Expected Annual Return (%)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Creates investment growth projection chart
+   */
+  function createGrowthChart(monthlyAmount, timeframe) {
+    const ctx = document.getElementById('growthChart');
+    if (!ctx) return;
+
+    const years = timeframe === 'short' ? 3 : timeframe === 'medium' ? 10 : 20;
+    const months = years * 12;
+
+    // Conservative estimates for different scenarios
+    const scenarios = [
+      { name: 'Conservative (4%)', rate: 0.04, color: 'rgba(34, 197, 94, 0.8)' },
+      { name: 'Moderate (7%)', rate: 0.07, color: 'rgba(99, 102, 241, 0.8)' },
+      { name: 'Optimistic (10%)', rate: 0.10, color: 'rgba(168, 85, 247, 0.8)' }
+    ];
+
+    const labels = [];
+    const datasets = scenarios.map(scenario => ({
+      label: scenario.name,
+      data: [],
+      borderColor: scenario.color,
+      backgroundColor: scenario.color.replace('0.8', '0.2'),
+      borderWidth: 3,
+      tension: 0.4,
+      fill: false
+    }));
+
+    // Calculate growth for each month
+    for (let month = 0; month <= months; month += Math.max(1, Math.floor(months / 24))) {
+      labels.push(month === 0 ? 'Start' : `${Math.floor(month / 12)}y ${month % 12}m`);
+
+      scenarios.forEach((scenario, index) => {
+        const monthlyRate = scenario.rate / 12;
+        let total = 0;
+
+        for (let m = 1; m <= month; m++) {
+          total += monthlyAmount * Math.pow(1 + monthlyRate, month - m + 1);
+        }
+
+        datasets[index].data.push(total);
+      });
+    }
+
+    investmentCharts.growth = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff',
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: $${context.parsed.y.toLocaleString()}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time Period',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Portfolio Value ($)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff',
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Destroys all investment charts to prevent memory leaks
+   */
+  function destroyInvestmentCharts() {
+    Object.values(investmentCharts).forEach(chart => {
+      if (chart) {
+        chart.destroy();
+      }
+    });
+
+    investmentCharts = {
+      allocation: null,
+      sector: null,
+      performance: null,
+      growth: null
+    };
   }
 
   /**

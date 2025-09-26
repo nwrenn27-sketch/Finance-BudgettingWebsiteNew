@@ -13,6 +13,9 @@
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -259,7 +262,7 @@
   <!-- SEO meta description -->
   <meta name="description" content="Calculate your annual income from hourly, daily, weekly, monthly, or yearly pay and get smart budgeting suggestions by category.">
 </head>
-<body class="bg-background text-foreground min-h-screen" style="background-color: #000000 !important; color: #ffffff !important;">
+<body class="bg-background text-foreground min-h-screen">
   <!-- Site Header -->
   <header class="bg-background border-b border-border">
     <div class="container mx-auto px-6 py-6">
@@ -916,6 +919,43 @@
 
         <!-- Investment Recommendations Display -->
         <div id="investment-results" class="investment-results" aria-live="polite"></div>
+
+        <!-- Investment Visualization Section -->
+        <div id="investment-charts" class="investment-charts" style="display: none;">
+          <div class="charts-grid">
+            <!-- Portfolio Allocation Chart -->
+            <div class="chart-container">
+              <h4>Portfolio Allocation</h4>
+              <div class="chart-wrapper">
+                <canvas id="allocationChart" width="400" height="400"></canvas>
+              </div>
+            </div>
+
+            <!-- Sector Diversification Chart -->
+            <div class="chart-container">
+              <h4>Sector Diversification</h4>
+              <div class="chart-wrapper">
+                <canvas id="sectorChart" width="400" height="400"></canvas>
+              </div>
+            </div>
+
+            <!-- Risk vs Return Visualization -->
+            <div class="chart-container full-width">
+              <h4>Expected Performance Overview</h4>
+              <div class="chart-wrapper">
+                <canvas id="performanceChart" width="800" height="400"></canvas>
+              </div>
+            </div>
+
+            <!-- Investment Growth Projection -->
+            <div class="chart-container full-width">
+              <h4>Investment Growth Projection</h4>
+              <div class="chart-wrapper">
+                <canvas id="growthChart" width="800" height="400"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- API Status Display -->
         <div id="api-status" class="api-status" style="display: none;"></div>

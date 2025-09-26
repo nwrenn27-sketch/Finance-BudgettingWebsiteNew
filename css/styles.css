@@ -81,10 +81,108 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: hsl(var(--foreground));
-  background-color: hsl(var(--background));
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Enhanced gradient background with smoother transitions */
+  background: linear-gradient(135deg,
+    #0a0a1a 0%,
+    #0e0e20 12%,
+    #121228 24%,
+    #161632 36%,
+    #1a1a3a 48%,
+    #1e1e42 60%,
+    #22224a 72%,
+    #262652 84%,
+    #2a2a5a 96%,
+    #2e2e62 100%
+  );
+
+  /* Animated background overlay */
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at top left, rgba(120, 119, 198, 0.08) 0%, rgba(120, 119, 198, 0.04) 25%, rgba(120, 119, 198, 0.02) 50%, transparent 80%),
+    radial-gradient(ellipse at top right, rgba(255, 107, 107, 0.06) 0%, rgba(255, 107, 107, 0.03) 30%, rgba(255, 107, 107, 0.01) 60%, transparent 85%),
+    radial-gradient(ellipse at bottom left, rgba(46, 213, 115, 0.06) 0%, rgba(46, 213, 115, 0.03) 30%, rgba(46, 213, 115, 0.01) 60%, transparent 85%),
+    radial-gradient(ellipse at bottom right, rgba(0, 123, 255, 0.08) 0%, rgba(0, 123, 255, 0.04) 25%, rgba(0, 123, 255, 0.02) 50%, transparent 80%);
+  pointer-events: none;
+  z-index: -2;
+  animation: backgroundShift 20s ease-in-out infinite;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 120%;
+  height: 120%;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.015) 0%, rgba(255, 255, 255, 0.008) 20%, rgba(255, 255, 255, 0.004) 40%, transparent 70%),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.012) 0%, rgba(255, 255, 255, 0.006) 25%, rgba(255, 255, 255, 0.003) 50%, transparent 75%),
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.008) 0%, rgba(255, 255, 255, 0.004) 30%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.005) 25%, transparent 65%);
+  pointer-events: none;
+  z-index: -1;
+  animation: floatingDots 30s linear infinite;
+}
+
+/* Keyframe animations for dynamic background */
+@keyframes backgroundShift {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.02) rotate(0.3deg);
+    filter: blur(0.5px);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(0.98) rotate(-0.3deg);
+    filter: blur(0.3px);
+  }
+  75% {
+    opacity: 0.92;
+    transform: scale(1.01) rotate(0.2deg);
+    filter: blur(0.4px);
+  }
+}
+
+@keyframes floatingDots {
+  0% {
+    transform: translateX(-8%) translateY(-8%) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translateX(3%) translateY(-12%) rotate(45deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(8%) translateY(-3%) rotate(90deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(-3%) translateY(-15%) rotate(135deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(-8%) translateY(-8%) rotate(180deg);
+    opacity: 0.8;
+  }
 }
 
 /* ============================================================================
@@ -100,13 +198,52 @@ body {
 }
 
 .card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   color: hsl(var(--card-foreground));
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.005) 20%,
+    rgba(255, 255, 255, 0.015) 40%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.015) 60%,
+    rgba(255, 255, 255, 0.005) 80%,
+    transparent 100%
+  );
+  transition: left 0.6s ease-in-out;
+}
+
+.card:hover::before {
+  left: 100%;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 64px 0 rgba(31, 38, 135, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .grid {
@@ -279,11 +416,63 @@ body {
 }
 
 .metric-card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius);
   padding: 1.5rem;
   text-align: center;
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.01) 30%,
+    rgba(255, 255, 255, 0.005) 60%,
+    transparent 85%
+  );
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 20px 64px 0 rgba(31, 38, 135, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.15;
+  }
+  25% {
+    transform: rotate(45deg) scale(1.02);
+    opacity: 0.08;
+  }
+  50% {
+    transform: rotate(90deg) scale(1.05);
+    opacity: 0.05;
+  }
+  75% {
+    transform: rotate(135deg) scale(1.03);
+    opacity: 0.1;
+  }
 }
 
 .metric-title {
@@ -336,18 +525,50 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius);
   text-decoration: none;
   color: hsl(var(--card-foreground));
-  transition: all 200ms;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.008) 25%,
+    rgba(255, 255, 255, 0.025) 45%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.025) 55%,
+    rgba(255, 255, 255, 0.008) 75%,
+    transparent 100%
+  );
+  transition: left 0.5s ease-in-out;
+}
+
+.action-card:hover::before {
+  left: 100%;
 }
 
 .action-card:hover {
-  background-color: hsl(var(--accent));
-  border-color: hsl(var(--border));
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 12px 48px 0 rgba(31, 38, 135, 0.4),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
 }
 
 .action-icon {
@@ -578,8 +799,312 @@ body {
   background-color: hsl(var(--accent));
 }
 
-/* Force dark theme styles */
-body {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+/* Enhanced dark theme styles */
+.dark .card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .metric-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark .action-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================================================
+   INVESTMENT CHARTS STYLES
+   ============================================================================ */
+
+.investment-charts {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.chart-container {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-container.full-width {
+  grid-column: 1 / -1;
+}
+
+.chart-container h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-wrapper canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 16px 64px 0 rgba(31, 38, 135, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Chart legends and tooltips styling */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Performance metrics */
+.performance-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.performance-item {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.performance-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.performance-label {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Enhanced investment recommendations styling */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.recommendation-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 20px 64px 0 rgba(31, 38, 135, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+.rec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.rec-header h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.rec-type {
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.rec-name {
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.rec-sector {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 1rem 0;
+}
+
+.price-info {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-price {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-change {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-change.positive {
+  color: hsl(var(--success));
+}
+
+.price-change.negative {
+  color: hsl(var(--destructive));
+}
+
+.price-note {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+.allocation-suggestion {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: calc(var(--radius) - 2px);
+  border-left: 3px solid hsl(var(--primary));
+}
+
+.allocation-suggestion p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+/* Responsive design for charts */
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .chart-container {
+    padding: 1rem;
+  }
+
+  .chart-wrapper {
+    height: 300px;
+  }
+
+  .performance-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .recommendation-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .investment-charts {
+    padding: 1rem;
+  }
+
+  .chart-wrapper {
+    height: 250px;
+  }
+
+  .performance-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container h4 {
+    font-size: 1rem;
+  }
 }
