@@ -338,6 +338,12 @@
           </svg>
           Investments
         </button>
+        <button class="tab-btn inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground text-muted-foreground" data-tab="ai-assistant">
+          <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          AI Assistant
+        </button>
       </div>
     </div>
 
@@ -1153,6 +1159,118 @@
       </div>
     </section>
 
+    <!-- AI Financial Assistant Tab -->
+    <section class="tab-content" id="ai-assistant-tab" aria-labelledby="ai-title">
+      <div class="card">
+        <div class="flex flex-col h-[600px]">
+          <!-- AI Assistant Header -->
+          <div class="flex items-center justify-between border-b border-border pb-4 mb-4">
+            <div>
+              <h2 id="ai-title" class="text-xl font-semibold">AI Financial Assistant</h2>
+              <p class="text-sm text-muted-foreground">Ask me anything about personal finance, investments, budgeting, and more</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div id="ai-status" class="text-xs text-muted-foreground">Ready</div>
+              <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button class="quick-prompt-btn" data-prompt="How should I budget my income based on my current financial situation?">
+              💰 Budget Advice
+            </button>
+            <button class="quick-prompt-btn" data-prompt="What are some safe investment options for beginners?">
+              📈 Investment Tips
+            </button>
+            <button class="quick-prompt-btn" data-prompt="How can I improve my credit score?">
+              📊 Credit Score
+            </button>
+            <button class="quick-prompt-btn" data-prompt="What's the best debt payoff strategy for my situation?">
+              💳 Debt Strategy
+            </button>
+            <button class="quick-prompt-btn" data-prompt="How much should I save for emergencies?">
+              🛡️ Emergency Fund
+            </button>
+            <button class="quick-prompt-btn" data-prompt="What are current market trends I should know about?">
+              📊 Market Data
+            </button>
+          </div>
+
+          <!-- Chat Messages Container -->
+          <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-muted/20 rounded-lg">
+            <div class="ai-message">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="bg-background rounded-lg p-3 border border-border">
+                    <p class="text-sm">👋 Hello! I'm your AI financial assistant. I can help you with:</p>
+                    <ul class="text-xs mt-2 space-y-1 text-muted-foreground">
+                      <li>• Personalized advice based on your financial data</li>
+                      <li>• Real-time market information and analysis</li>
+                      <li>• Investment strategies and recommendations</li>
+                      <li>• Budget optimization and debt management</li>
+                      <li>• Tax planning and financial goal setting</li>
+                    </ul>
+                    <p class="text-xs mt-2 text-muted-foreground">Ask me anything or use the quick buttons above!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input Area -->
+          <div class="flex gap-2">
+            <div class="flex-1 relative">
+              <input
+                type="text"
+                id="chat-input"
+                placeholder="Ask me about budgeting, investing, debt management, or any financial question..."
+                class="w-full h-12 px-4 pr-12 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                maxlength="500"
+              >
+              <button
+                id="send-message"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-primary hover:bg-primary/10 rounded"
+                disabled
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+              </button>
+            </div>
+            <button id="clear-chat" class="px-4 py-2 border border-border rounded-lg hover:bg-muted text-sm">
+              Clear
+            </button>
+          </div>
+
+          <!-- API Key Setup (Hidden by default) -->
+          <div id="api-key-setup" class="mt-4 p-4 bg-muted/50 rounded-lg" style="display: none;">
+            <h4 class="text-sm font-medium mb-2">Setup Required</h4>
+            <p class="text-xs text-muted-foreground mb-3">
+              To use the AI assistant, you'll need a free Google Gemini API key.
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary hover:underline">Get your free key here</a>.
+            </p>
+            <div class="flex gap-2">
+              <input
+                type="password"
+                id="gemini-api-key"
+                placeholder="Enter your Gemini API key..."
+                class="flex-1 h-10 px-3 border border-border rounded text-sm"
+              >
+              <button id="save-api-key" class="px-4 py-2 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Goals Tracker Tab -->
     <section class="tab-content" id="goals-tab" aria-labelledby="goals-title">
       <div class="card">
@@ -1225,6 +1343,8 @@
   <script src="./js/calculators.js" defer></script>
   <script src="./js/dataManager.js" defer></script>
   <script src="./js/uiUtils.js" defer></script>
+  <script src="./js/marketData.js" defer></script>
+  <script src="./js/aiAssistant.js" defer></script>
   <script src="./js/app.js" defer></script>
 
   <!-- Legacy Script (keeping for backward compatibility) -->

@@ -1270,3 +1270,205 @@ body::after {
     padding: 1rem;
   }
 }
+
+/* ============================================================================
+   AI FINANCIAL ASSISTANT STYLES
+   ============================================================================ */
+
+/* Quick prompt buttons */
+.quick-prompt-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-prompt-btn:hover {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--primary));
+}
+
+/* Chat messages container */
+#chat-messages {
+  max-height: 400px;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)) transparent;
+}
+
+#chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+}
+
+/* AI message styling */
+.ai-message {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.user-message {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.user-message .flex {
+  flex-direction: row-reverse;
+}
+
+.user-message .bg-background {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Message animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+}
+
+.typing-dots {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground));
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingDot {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Chat input styling */
+#chat-input:focus + #send-message {
+  color: hsl(var(--primary));
+}
+
+#send-message:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* API key setup styling */
+#api-key-setup {
+  border: 1px solid hsl(var(--warning) / 0.3);
+  background: hsl(var(--warning) / 0.1);
+}
+
+/* Market data styling */
+.market-data {
+  background: hsl(var(--muted) / 0.5);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.market-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.market-symbol {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.market-price {
+  font-variant-numeric: tabular-nums;
+}
+
+.market-change.positive {
+  color: hsl(var(--success));
+}
+
+.market-change.negative {
+  color: hsl(var(--destructive));
+}
+
+/* Financial advice cards */
+.advice-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.advice-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.advice-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+/* Responsive adjustments for AI assistant */
+@media (max-width: 768px) {
+  .quick-prompt-btn {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .flex.flex-col.h-\[600px\] {
+    height: 500px;
+  }
+
+  #chat-messages {
+    max-height: 300px;
+  }
+
+  .ai-message, .user-message {
+    margin: 0.5rem 0;
+  }
+}

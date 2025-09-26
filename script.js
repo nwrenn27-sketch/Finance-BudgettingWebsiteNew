@@ -3330,4 +3330,12 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     initializeEnhancedIncomeCalculator();
   }
+
+  // ============================================================================
+  // AI ASSISTANT - MOVED TO MODULAR ARCHITECTURE
+  // ============================================================================
+  // AI Assistant functionality has been refactored into separate modules:
+  // - js/aiAssistant.js - Main AI chat functionality
+  // - js/marketData.js - Real-time financial data service
+  // This improves code organization, performance, and maintainability.
 });
