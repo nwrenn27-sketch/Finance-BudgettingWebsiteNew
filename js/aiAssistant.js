@@ -312,7 +312,8 @@ class AIAssistant {
    */
   async generateResponse(userMessage, financialContext, marketData) {
     if (!this.config.apiKey) {
-      return "To get personalized AI advice, please set up your free Gemini API key in the settings. For now, here's some general financial guidance: " + this.getGeneralAdvice(userMessage, financialContext);
+      // Return general advice without API key
+      return this.getGeneralAdvice(userMessage, financialContext);
     }
 
     try {
@@ -321,7 +322,8 @@ class AIAssistant {
       return this.formatAIResponse(response, marketData);
     } catch (error) {
       console.error('AI Response Error:', error);
-      return this.getFallbackResponse(userMessage, financialContext, marketData);
+      // Return general advice on error
+      return this.getGeneralAdvice(userMessage, financialContext);
     }
   }
 
@@ -435,22 +437,26 @@ User's Financial Context:`;
     const lowerMessage = message.toLowerCase();
 
     if (lowerMessage.includes('budget') || lowerMessage.includes('spending')) {
-      return "Follow the 50/30/20 rule: 50% for needs, 30% for wants, 20% for savings and debt repayment.";
+      return "**Budgeting Tips:**\n\n• Follow the 50/30/20 rule: 50% for needs, 30% for wants, 20% for savings and debt repayment\n• Track all your expenses for at least one month to understand spending patterns\n• Use the Budget tab in this app to categorize and analyze your spending\n• Cut discretionary expenses first when trying to save more\n• Review and adjust your budget monthly";
     }
 
     if (lowerMessage.includes('invest') || lowerMessage.includes('stock')) {
-      return "Start with low-cost index funds, diversify your portfolio, and invest consistently for the long term.";
+      return "**Investment Guidance:**\n\n• Start with low-cost index funds (like S&P 500) for diversification\n• Dollar-cost averaging: Invest regularly regardless of market conditions\n• Don't try to time the market - time IN the market matters more\n• Consider your risk tolerance and time horizon\n• For beginners: 80-90% stocks, 10-20% bonds is common\n• Check out the Investments tab for safe stock recommendations";
     }
 
-    if (lowerMessage.includes('debt') || lowerMessage.includes('pay off')) {
-      return "Use either debt avalanche (highest interest first) or debt snowball (smallest balance first) strategies.";
+    if (lowerMessage.includes('debt') || lowerMessage.includes('pay off') || lowerMessage.includes('loan')) {
+      return "**Debt Payoff Strategies:**\n\n• **Debt Avalanche:** Pay off highest interest rate debt first (saves most money)\n• **Debt Snowball:** Pay off smallest balance first (psychological wins)\n• Make minimum payments on all debts, put extra toward your target debt\n• Consider balance transfers for high-interest credit cards\n• Use the Debt Payoff calculator in this app to create your plan\n• Avoid taking on new debt while paying off existing debt";
     }
 
     if (lowerMessage.includes('emergency') || lowerMessage.includes('savings')) {
-      return "Aim for 3-6 months of expenses in a high-yield savings account for emergencies.";
+      return "**Emergency Fund Guidelines:**\n\n• Start with $1,000 as a mini emergency fund\n• Build up to 3-6 months of essential expenses\n• 6-12 months if you're self-employed or have variable income\n• Keep it in a high-yield savings account for easy access\n• Don't invest emergency funds - liquidity is key\n• Use the Emergency Fund tab to calculate your target amount";
     }
 
-    return "Focus on the basics: spend less than you earn, build an emergency fund, pay off high-interest debt, and invest for the long term.";
+    if (lowerMessage.includes('credit score') || lowerMessage.includes('credit')) {
+      return "**Building Credit Score:**\n\n• Pay all bills on time (35% of score)\n• Keep credit utilization below 30% (30% of score)\n• Don't close old credit cards (age of credit: 15%)\n• Mix of credit types helps (10%)\n• Limit hard inquiries when applying for new credit (10%)\n• Check your credit report annually for errors";
+    }
+
+    return "**General Financial Advice:**\n\n• **Spend less than you earn** - fundamental rule of wealth building\n• **Build an emergency fund** - 3-6 months of expenses\n• **Pay off high-interest debt** - especially credit cards (>15% APR)\n• **Invest for the long term** - start with retirement accounts (401k, IRA)\n• **Track your spending** - use the tools in this app\n• **Review your finances monthly** - adjust as needed\n\n*For personalized AI advice, add a free Gemini API key in the setup section!*";
   }
 
   /**

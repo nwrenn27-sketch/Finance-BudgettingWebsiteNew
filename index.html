@@ -1224,28 +1224,33 @@
           </div>
 
           <!-- Chat Input Area -->
-          <div class="flex gap-2">
-            <div class="flex-1 relative">
-              <input
-                type="text"
-                id="chat-input"
-                placeholder="Ask me about budgeting, investing, debt management, or any financial question..."
-                class="w-full h-12 px-4 pr-12 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                maxlength="500"
-              >
-              <button
-                id="send-message"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-primary hover:bg-primary/10 rounded"
-                disabled
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
+          <div class="chat-input-container">
+            <form id="ai-chat-form" class="flex gap-2">
+              <div class="flex-1 relative">
+                <input
+                  type="text"
+                  id="ai-message-input"
+                  placeholder="Ask me about budgeting, investing, debt management, or any financial question..."
+                  class="chat-input w-full h-12 px-4 pr-12 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  maxlength="500"
+                  autocomplete="off"
+                  required
+                  style="color: #111827 !important; background: white !important;"
+                >
+                <button
+                  type="submit"
+                  class="send-button absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-primary hover:bg-primary/10 rounded"
+                  disabled
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                  </svg>
+                </button>
+              </div>
+              <button type="button" id="clear-chat-btn" class="px-4 py-2 border border-border rounded-lg hover:bg-muted text-sm">
+                Clear
               </button>
-            </div>
-            <button id="clear-chat" class="px-4 py-2 border border-border rounded-lg hover:bg-muted text-sm">
-              Clear
-            </button>
+            </form>
           </div>
 
           <!-- API Key Setup (Hidden by default) -->
@@ -1329,89 +1334,6 @@
       </div>
     </section>
 
-    <!-- AI Assistant Tab -->
-    <section class="tab-content" id="ai-assistant-tab" aria-labelledby="ai-title">
-      <div class="card">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h2 id="ai-title">AI Financial Assistant</h2>
-            <p class="text-muted-foreground">Get personalized financial advice and answers to your money questions. Ask about budgeting, investing, debt management, or any financial topic!</p>
-          </div>
-          <button id="clear-chat-btn" class="btn-secondary text-sm px-3 py-2">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
-            Clear Chat
-          </button>
-        </div>
-        
-        <!-- Chat Interface -->
-        <div class="ai-chat-container">
-          <div id="chat-messages" class="chat-messages">
-            <div class="ai-message">
-              <div class="message-avatar">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-              </div>
-              <div class="message-content">
-                <div class="message-header">
-                  <span class="message-sender">AI Assistant</span>
-                  <span class="message-time">Just now</span>
-                </div>
-                <div class="message-text">
-                  Hello! I'm your AI financial assistant. I can help you with:
-                  <ul class="mt-2 space-y-1 text-sm">
-                    <li>• Budget planning and optimization</li>
-                    <li>• Investment strategies and recommendations</li>
-                    <li>• Debt payoff strategies</li>
-                    <li>• Emergency fund planning</li>
-                    <li>• Financial goal setting</li>
-                    <li>• Tax planning basics</li>
-                  </ul>
-                  What would you like to know about your finances?
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Chat Input -->
-          <div class="chat-input-container">
-            <form id="ai-chat-form" class="chat-input-form">
-              <div class="input-group">
-                <input 
-                  type="text" 
-                  id="ai-message-input" 
-                  placeholder="Ask me anything about your finances..." 
-                  class="chat-input"
-                  autocomplete="off"
-                  required
-                >
-                <button type="submit" class="send-button" disabled>
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
-            <div class="chat-suggestions">
-              <button class="suggestion-chip" data-suggestion="How should I budget my monthly income?">
-                Budget planning
-              </button>
-              <button class="suggestion-chip" data-suggestion="What's the best way to start investing?">
-                Investment advice
-              </button>
-              <button class="suggestion-chip" data-suggestion="How much should I save for emergencies?">
-                Emergency fund
-              </button>
-              <button class="suggestion-chip" data-suggestion="What's the fastest way to pay off debt?">
-                Debt payoff
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- Site Footer -->

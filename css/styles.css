@@ -1382,11 +1382,29 @@ body::after {
 }
 
 /* Chat input styling */
+#ai-message-input {
+  color: #000000 !important;
+  background: #ffffff !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+#ai-message-input:focus {
+  color: #000000 !important;
+  background: #ffffff !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+#ai-message-input::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
 #chat-input:focus + #send-message {
   color: hsl(var(--primary));
 }
 
-#send-message:disabled {
+#send-message:disabled,
+.send-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
